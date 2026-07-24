@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>番茄女频新书榜 · 趋势分析 7月21日–7月23日</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117; --bg2: #171b26; --bg3: #1e2433; --border: #2a3040;
+    --text: #e2e8f0; --text2: #94a3b8; --text3: #64748b;
+    --accent: #f59e0b; --green: #22c55e; --red: #ef4444; --blue: #3b82f6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system,'PingFang SC','Microsoft YaHei',sans-serif; font-size: 14px; line-height: 1.6; }
+  .header { background: linear-gradient(135deg,#1a1f2e 0%,#0f1117 100%); border-bottom: 1px solid var(--border); padding: 28px 40px 24px; }
+  .header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .header p  { color: var(--text2); font-size: 13px; }
+  .header .meta { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+  .header .tag { background: var(--bg3); border: 1px solid var(--border); color: var(--text2); padding: 3px 10px; border-radius: 4px; font-size: 12px; }
+  .container { max-width: 1320px; margin: 0 auto; padding: 24px 32px 60px; }
+  .section { margin-bottom: 44px; }
+  .section-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .badge { background: var(--accent); color: #000; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 3px; }
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+  .chart-wrap { position: relative; }
+  .note { background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.2); border-radius: 8px; padding: 12px 16px; color: var(--text2); font-size: 12px; line-height: 1.7; margin-bottom: 20px; }
+  .note strong { color: var(--accent); }
+  .score-group { margin-bottom: 20px; }
+  .score-group-label { font-size: 12px; color: var(--text3); font-weight: 600; letter-spacing: .05em; margin-bottom: 10px; padding-left: 2px; }
+  .rec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .rec-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; position: relative; overflow: hidden; }
+  .rec-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; }
+  .rec-card.s8::before { background: linear-gradient(180deg,#f59e0b,#ef4444); }
+  .rec-card.s7::before { background: linear-gradient(180deg,#22c55e,#3b82f6); }
+  .rec-card.s6::before { background: linear-gradient(180deg,#6366f1,#8b5cf6); }
+  .rec-card.s5::before { background: #3498db; }
+  .rec-card.slo::before { background: var(--bg3); }
+  .rec-cat { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .rec-score-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 12px; margin-bottom: 10px; }
+  .rec-score-badge.high { background: rgba(245,158,11,.15); color: var(--accent); border: 1px solid rgba(245,158,11,.3); }
+  .rec-score-badge.med  { background: rgba(34,197,94,.12); color: #86efac; border: 1px solid rgba(34,197,94,.25); }
+  .rec-score-badge.low  { background: rgba(100,116,139,.15); color: var(--text3); border: 1px solid rgba(100,116,139,.25); }
+  .rec-stats { display: flex; gap: 14px; margin-bottom: 10px; flex-wrap: wrap; }
+  .rec-stat .val { font-size: 15px; font-weight: 700; }
+  .rec-stat .lbl { font-size: 11px; color: var(--text3); }
+  .rec-reasons { display: flex; flex-wrap: wrap; gap: 4px; }
+  .rec-reasons span { font-size: 11px; padding: 2px 7px; border-radius: 3px; }
+  .tag-green  { background: rgba(34,197,94,.15); color: #86efac; }
+  .tag-yellow { background: rgba(245,158,11,.15); color: #fde68a; }
+  .tag-blue   { background: rgba(59,130,246,.15); color: #93c5fd; }
+  .tag-purple { background: rgba(168,85,247,.15); color: #d8b4fe; }
+  .overview-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .overview-table th { text-align: left; padding: 8px 12px; color: var(--text3); font-weight: 500; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .overview-table td { padding: 7px 12px; border-bottom: 1px solid rgba(42,48,64,.5); white-space: nowrap; }
+  .overview-table tr:hover td { background: var(--bg3); }
+  .overview-table .cat-name { font-weight: 600; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .pill-up { background: rgba(34,197,94,.15); color: #86efac; }
+  .pill-dn { background: rgba(239,68,68,.12); color: #fca5a5; }
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab { padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text2); background: var(--bg3); border: 1px solid var(--border); transition: all .15s; }
+  .tab:hover { color: var(--text); border-color: var(--text3); }
+  .tab.active { background: var(--accent); color: #000; border-color: var(--accent); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .book-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 16px; }
+  .book-table th { text-align: left; padding: 7px 10px; color: var(--text3); font-weight: 500; border-bottom: 1px solid var(--border); }
+  .book-table td { padding: 7px 10px; border-bottom: 1px solid rgba(42,48,64,.4); }
+  .book-table tr:hover td { background: var(--bg3); }
+  .book-table a { color: var(--blue); text-decoration: none; }
+  .book-table a:hover { text-decoration: underline; }
+  .trend-up { color: var(--green); font-weight: 600; }
+  .trend-mid { color: #f97316; font-weight: 600; }
+  .trend-dn { color: var(--red); }
+  .expand-btn { background: none; border: 1px solid var(--border); color: var(--text3); border-radius: 4px; padding: 1px 7px; font-size: 11px; cursor: pointer; transition: all .15s; }
+  .expand-btn:hover { border-color: var(--text2); color: var(--text); }
+  .book-detail-row { display: none; }
+  .book-detail-row.open { display: table-row; }
+  .book-detail-row td { padding: 10px 14px 14px; background: var(--bg3); border-bottom: 1px solid rgba(42,48,64,.4); }
+  .book-detail-inner { font-size: 12px; color: var(--text2); line-height: 1.7; }
+  .book-detail-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .book-detail-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .book-detail-tag { background: rgba(59,130,246,.12); color: #93c5fd; border-radius: 3px; padding: 1px 7px; font-size: 11px; }
+  .tag-section { margin-top: 16px; }
+  .tag-section-title { font-size: 13px; color: var(--text2); font-weight: 600; margin-bottom: 12px; }
+  .tag-bar-list { display: flex; flex-direction: column; gap: 7px; }
+  .tag-bar-row { display: flex; align-items: center; gap: 10px; }
+  .tag-bar-name { width: 80px; font-size: 12px; color: var(--text); text-align: right; flex-shrink: 0; }
+  .tag-bar-track { flex: 1; background: var(--bg3); border-radius: 3px; height: 16px; overflow: hidden; }
+  .tag-bar-fill { height: 100%; border-radius: 3px; }
+  .tag-bar-count { font-size: 11px; color: var(--text3); flex-shrink: 0; width: 36px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+  .book-layout { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px; align-items: start; margin-top: 4px; }
+  .book-layout > .card { margin-top: 0; }
+  @media (max-width: 1100px) { .book-layout { grid-template-columns: 1fr; } }
+  .legend-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text2); cursor: pointer; padding: 3px 8px; border-radius: 4px; border: 1px solid transparent; transition: border-color .15s; }
+  .legend-item:hover { border-color: var(--border); }
+  .legend-item.hidden { opacity: .35; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>番茄小说 · 女频新书榜 · 趋势分析</h1>
+  <p>基于 7月21日—7月23日（最近3天）榜单原始数据，共 18 个分类、TOP 30</p>
+  <div class="meta">
+    <span class="tag">数据区间：2026-07-21 ~ 2026-07-23</span>
+    <span class="tag">18 个分类</span>
+    <span class="tag">竞争系数 = 第1名在读 ÷ 中位数在读（越低越好）</span>
+  </div>
+</div>
+<div class="container">
+  <div class="section">
+    <div class="section-title"><span class="badge">推荐</span> 赛道综合评分</div>
+    <div class="note">
+      <strong>评分维度（满分10分）：</strong><br>
+      增长趋势：3日总在读涨幅 &gt; 0% → +3分，-3%~0%（稳定）→ +1分<br>
+      竞争系数（第1名在读 ÷ 中位数在读，越低越好）：&lt;5 → +3分，5~7 → +2分，7~10 → +1分<br>
+      赛道体量：总在读 &gt; 200万 → +2分，100~200万 → +1分<br>
+      10万+书目：≥10本 → +2分，4~9本 → +1分
+    </div>
+    <div id="rec-container"></div>
+  </div>
+  <div class="section">
+    <div class="section-title"><span class="badge">总览</span> 在读人数呈趋势上升的赛道</div>
+    <div class="note">从全部 18 个分类中筛选出 3 日内在读人数持续上升的题材，共 7 个。</div>
+    <div class="card">
+      <div id="overview-legend" class="legend-row"></div>
+      <div class="chart-wrap" style="height:320px"><canvas id="overviewChart"></canvas></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title"><span class="badge">对比</span> 3日增幅 &amp; 竞争系数分析</div>
+    <div class="two-col">
+      <div class="card">
+        <div style="font-size:13px;color:var(--text2);margin-bottom:12px">3日总在读增幅（7月21日→7月23日）</div>
+        <div class="chart-wrap" style="height:320px"><canvas id="growthChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;color:var(--text2);margin-bottom:12px">赛道定位图：总在读 vs 竞争系数（气泡大小 = 10万+书目数）</div>
+        <div class="chart-wrap" style="height:320px"><canvas id="bubbleChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title"><span class="badge">数据</span> 全分类汇总表（7月23日快照）</div>
+    <div class="card" style="overflow-x:auto">
+      <table class="overview-table" id="overviewTable"></table>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title"><span class="badge">书目</span> 推荐赛道 &amp; 对标书目</div>
+    <div class="note">
+      仅展示连续3天上榜且净增 &gt; 0 的书目，按净增降序排列。
+    </div>
+    <div class="tabs" id="bookTabs"></div>
+    <div id="bookTabContents"></div>
+  </div>
+</div>
+<script>
+const D = {"catTags": {"豪门总裁": [{"tag": "总裁", "count": 6}, {"tag": "甜宠", "count": 4}, {"tag": "双洁", "count": 4}, {"tag": "先婚后爱", "count": 3}, {"tag": "大佬", "count": 3}, {"tag": "穿书", "count": 2}, {"tag": "宠妻", "count": 2}, {"tag": "腹黑", "count": 2}, {"tag": "豪门世家", "count": 2}, {"tag": "契约婚姻", "count": 1}], "青春甜宠": [{"tag": "校园", "count": 7}, {"tag": "学霸", "count": 5}, {"tag": "暗恋", "count": 5}, {"tag": "重生", "count": 3}, {"tag": "甜宠", "count": 3}, {"tag": "HE", "count": 2}, {"tag": "双洁", "count": 2}, {"tag": "系统", "count": 1}, {"tag": "青梅竹马", "count": 1}, {"tag": "追妻火葬场", "count": 1}], "现言脑洞": [{"tag": "系统", "count": 6}, {"tag": "穿越", "count": 3}, {"tag": "校园", "count": 2}, {"tag": "搞笑轻松", "count": 2}, {"tag": "幻想言情", "count": 2}, {"tag": "直播", "count": 2}, {"tag": "穿书", "count": 2}, {"tag": "双洁", "count": 2}, {"tag": "先婚后爱", "count": 2}, {"tag": "总裁", "count": 1}], "玄幻言情": [{"tag": "幻想言情", "count": 4}, {"tag": "异世穿越", "count": 4}, {"tag": "穿越", "count": 4}, {"tag": "今穿古", "count": 3}, {"tag": "魂穿", "count": 3}, {"tag": "系统", "count": 2}, {"tag": "群像", "count": 2}, {"tag": "穿书", "count": 1}, {"tag": "黑化", "count": 1}, {"tag": "腹黑", "count": 1}], "古风世情": [{"tag": "古代言情", "count": 11}, {"tag": "古言权谋", "count": 8}, {"tag": "重生", "count": 2}, {"tag": "古色古香", "count": 2}, {"tag": "情有独钟", "count": 2}, {"tag": "公主", "count": 2}, {"tag": "穿越", "count": 2}, {"tag": "甜宠", "count": 1}, {"tag": "科举", "count": 1}, {"tag": "女扮男装", "count": 1}]}, "days": ["7月21日", "7月22日", "7月23日"], "overviewDatasets": [{"label": "古风世情", "data": [64.8, 64.5, 65.5], "borderColor": "#c0392b", "backgroundColor": "#c0392b22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "悬疑脑洞", "data": [157.9, 155.1, 159.4], "borderColor": "#1abc9c", "backgroundColor": "#1abc9c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "民国言情", "data": [26.8, 27.2, 27.1], "borderColor": "#7f8c8d", "backgroundColor": "#7f8c8d22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "玄幻言情", "data": [121.4, 147.3, 142.8], "borderColor": "#8e44ad", "backgroundColor": "#8e44ad22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "现言脑洞", "data": [307.8, 309.6, 322.5], "borderColor": "#9b59b6", "backgroundColor": "#9b59b622", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "科幻末世", "data": [145.8, 147.4, 149.5], "borderColor": "#16a085", "backgroundColor": "#16a08522", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "豪门总裁", "data": [446.9, 442.5, 448.4], "borderColor": "#e74c3c", "backgroundColor": "#e74c3c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}], "growthCats": ["玄幻言情", "现言脑洞", "科幻末世", "古风世情", "民国言情", "悬疑脑洞", "豪门总裁", "青春甜宠", "职场婚恋", "游戏体育", "女频悬疑", "年代", "女频衍生", "古言脑洞", "星光璀璨", "快穿", "宫斗宅斗", "种田"], "growthValues": [17.6, 4.8, 2.6, 1.2, 1.1, 1.0, 0.3, -0.7, -1.4, -1.5, -1.6, -1.7, -2.8, -3.9, -4.6, -8.1, -8.5, -49.9], "growthColors": ["#22c55e", "#22c55e", "#22c55e", "#22c55e", "#22c55e", "#22c55e", "#22c55e", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444"], "bubbleData": [{"x": 187.1, "y": 15.2, "r": 11.2, "label": "古言脑洞", "count10w": 4}, {"x": 65.5, "y": 3.5, "r": 4, "label": "古风世情", "count10w": 0}, {"x": 84.3, "y": 4.0, "r": 4, "label": "女频悬疑", "count10w": 0}, {"x": 127.3, "y": 2.6, "r": 4, "label": "女频衍生", "count10w": 0}, {"x": 234.6, "y": 11.0, "r": 9.4, "label": "宫斗宅斗", "count10w": 3}, {"x": 191.9, "y": 3.5, "r": 11.2, "label": "年代", "count10w": 4}, {"x": 251.6, "y": 3.4, "r": 18.4, "label": "快穿", "count10w": 8}, {"x": 159.4, "y": 7.5, "r": 11.2, "label": "悬疑脑洞", "count10w": 4}, {"x": 144.9, "y": 14.1, "r": 7.6, "label": "星光璀璨", "count10w": 2}, {"x": 27.1, "y": 8.7, "r": 4, "label": "民国言情", "count10w": 0}, {"x": 35.7, "y": 2.8, "r": 4, "label": "游戏体育", "count10w": 0}, {"x": 142.8, "y": 3.0, "r": 5.8, "label": "玄幻言情", "count10w": 1}, {"x": 322.5, "y": 9.4, "r": 20.2, "label": "现言脑洞", "count10w": 9}, {"x": 52.9, "y": 3.1, "r": 5.8, "label": "种田", "count10w": 1}, {"x": 149.5, "y": 5.5, "r": 7.6, "label": "科幻末世", "count10w": 2}, {"x": 103.9, "y": 2.8, "r": 4, "label": "职场婚恋", "count10w": 0}, {"x": 448.4, "y": 6.1, "r": 41.800000000000004, "label": "豪门总裁", "count10w": 21}, {"x": 382.4, "y": 6.9, "r": 25.6, "label": "青春甜宠", "count10w": 12}], "bookChartData": {"豪门总裁": [{"label": "妹宝假装被催眠，阴湿哥哥上瘾了", "fullTitle": "妹宝假装被催眠，阴湿哥哥上瘾了", "link": "https://fanqienovel.com/page/7635504565827161112", "data": [58.89, 58.89, 68.58], "trend": 9.69, "latest": 68.6, "wordNumber": 148651, "desc": "【甜文+双洁+穿书+女配+真千金】\n【🔥穿书女配×阴湿哥哥｜🖤假催眠×真沦陷｜💍先婚后爱×强制爱】\n阮泱使唤男友大哥压腿时，觉醒剧情。\n她是一本豪门文里的恶毒前女友。\n仗着救命之恩，黏着男友，使唤男友全家，下场凄惨。\n阮泱害怕了，抽回脚。\n“哥哥，你去开会吧，不用帮我压腿了……”\n“那哥哥明天陪你。”\n阮泱哆嗦：“以后……都不用了。”\n大哥皱眉，摸出了催眠打火机。\n“泱泱，看着它。”\n\n*\n原著里，男友求大哥催眠她忘记订婚。\n阮泱乖乖配合，假装失忆，另寻结婚对象。\n可谁想到——\n在她结束相亲回家的夜。\n一向端方古板的大哥出现她的房间。\n催眠的火光亮起，映着那张端方禁欲的脸上，多了一丝鬼气的艳。\n这次他的指令是：\n“亲我。”\n“爱我。”\n“叫老公。”\n* \n江灼重生了。\n这一世，他陪白月光出国治病，弥补遗憾。\n临走前，他拜托兄长：“大哥，帮我催眠阮泱，让她忘记我一个月。”\n一个月后，他回国继续婚礼。\n却在泳池边，看到未婚妻被大哥按在腿上挨亲，娇气喊疼。\n江灼惨白着脸。\n“泱泱，快从大哥身上下来。”\n少女躲在丈夫怀里，杏眸圆睁。\n茫然问：“你是谁？”\n.\n表面：骄纵千金×古板daddy\n实际：老实软妹×阴湿疯批\n男主日常：早上好，妹夫。🙂\n\n", "tags": ["豪门总裁", "现代言情", "甜宠", "先婚后爱", "穿书", "双洁"], "borderColor": "#e74c3c", "backgroundColor": "#e74c3c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "吾妻小我十二岁", "fullTitle": "吾妻小我十二岁", "link": "https://fanqienovel.com/page/7654169527197912088", "data": [25.61, 25.61, 31.71], "trend": 6.1, "latest": 31.7, "wordNumber": 140904, "desc": "· 闻庭桉，三十三岁，风流倜傥，商界出了名的浪子。父亲闻鹤年催促他成家，他每次都以“再玩几年”搪塞。闻鹤年看着儿子怀里换不停的女人，心急如焚。\n· 班家突遇资金链危机，班父一夜白头。闻鹤年登门拜访，主动提出注资，条件是将女儿嫁给闻庭桉。\n· 班父婉拒：“班若有心上人了。”\n· 闻鹤年笑：“你家不是还有个小女儿吗？”\n· 班父摇头：“班般才二十一，太小了。”\n· 门外偷听的班般推门而入，声音很轻却很坚定：“爸，我不小了。姐姐有喜欢的人，让我去。”\n· 班若急得掉泪：“般般，你根本不知道闻庭桉是什么人！”\n· “我知道。”班般低头绞着手指，“他花心，但他是闻家的人，能帮家里。爸，让我去。”\n· 初次见面，北方饭店。班般穿得像个瓷娃娃，白白嫩嫩，坐在席间安静软糯。\n· 闻庭桉瞥了她一眼——圆脸，杏眼，像只还没长开的小奶猫。\n朋友问“见着新娘子了？怎么样？”他回：“像养了个闺女。”", "tags": ["豪门总裁", "现代言情", "总裁", "先婚后爱", "契约婚姻", "年龄差"], "borderColor": "#e91e8c", "backgroundColor": "#e91e8c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "领证前失约，未婚夫弟弟趁虚而入", "fullTitle": "领证前失约，未婚夫弟弟趁虚而入", "link": "https://fanqienovel.com/page/7641477597490056254", "data": [13.09, 14.53, 15.6], "trend": 2.51, "latest": 15.6, "wordNumber": 245220, "desc": "【现代言情+弟弟上位+蓄谋已久+宠妻+甜宠+男绿茶+先婚后爱+1v1+独宠+豪门总裁】\n领证前几分钟，未婚夫裴霆深选择推迟领证调转车头去医院看望刚回国的小青梅。\n沈若溪对着电话那头最后一句话。\n“五分钟后不出现，我就在民政局门口随便拉着别的男人领证，以后谁也不羁绊谁。”\n裴霆深只当是玩笑话，毅然去了医院。\n沈若溪气红了眼眶。\n背后突然传来一道熟悉的男人声音。\n“刚才说的五分钟还算数吗？”\n裴慕野，“嫂子不介意的话，考虑考虑我呗。”\n沈若溪就这样糊糊涂涂跟未婚夫的弟弟领了证，刚走出民政局门口就后悔了。\n“裴慕野，我们回去离个婚吧。”\n裴慕野拿着结婚证就跑，“抱歉，不做二婚男。”\n晚上，拿着新鲜出炉的结婚证闯进书房。\n“哥，你的保险柜借我用一下。”\n“干什么？”\n“女朋友送我的礼物，怕弄丢了她会生气。”", "tags": ["豪门总裁", "现代言情", "总裁", "宠妻", "先婚后爱", "1v1"], "borderColor": "#9b59b6", "backgroundColor": "#9b59b622", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "温夜潮湿", "fullTitle": "温夜潮湿", "link": "https://fanqienovel.com/page/7654742513151921177", "data": [13.18, 13.18, 14.38], "trend": 1.2, "latest": 14.4, "wordNumber": 159269, "desc": "【心机男主诱骗女宝一晌贪欢的故事】\n【双洁+甜宠+一见钟情强制爱+上位者当狗又挣又抢】\n【娇软好欺乖乖女vs腹黑心机太子爷】\n温薏生在一个高知家庭里，父母都是知名教授。\n她是父母长辈眼中的乖乖女，从小到大，几乎从不忤逆父母的想法，父母给她安排联姻，她也乖乖接受。\n直到有一天，喝醉酒的她被闺蜜不小心送到她大哥床上，她的人生，发生了天翻地覆的变化……\n一夜疯狂，温薏醒来时，看到跟闺蜜大哥躺在一张床上，彻底傻了。\n怕被要求负责，她连忙逃走，却不想这男人不仅是她闺蜜大哥，还是她顶头上司。\n隔天就被他叫到办公室，顶着一张祸国殃民的俊脸，对着她笑。\n“温小姐，上了我的床就跑，胆子挺大。”\n她只想把这件事当做一场意外，不负责不追究，可男人并不允许。\n某天深夜，他把她抵在闺房里，薄唇贴着她耳朵咬。\n“乖，再来一次。”\n“放心，我不会让你未婚夫知道。”\n她一时糊涂，被男人得逞了一次又一次，直到再也无法摆脱他……\n韩沐宸，京圈顶级豪门太子爷，毒舌又不近人情，从前清心寡欲的他，因为一次意外，跟亲妹妹的闺蜜一夜贪欢，从此一发不可收。\n亲妹说她有未婚夫，让他别痴心妄想。\n他嗤笑一声，有未婚夫又怎么了，抢过来就是", "tags": ["豪门总裁", "现代言情", "腹黑", "甜宠", "一见钟情", "双洁"], "borderColor": "#f39c12", "backgroundColor": "#f39c1222", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "作精不吸血后，重欲糙汉追着亲", "fullTitle": "作精不吸血后，重欲糙汉追着亲", "link": "https://fanqienovel.com/page/7654827436672044056", "data": [17.57, 17.57, 18.59], "trend": 1.02, "latest": 18.6, "wordNumber": 174172, "desc": "【出租屋文学+拜金作精+偏执糙汉+财阀太子爷当狗+恋爱脑】\n江圆圆知道自己是书中的作精前女友，开局差点被偏执男主办了。\n眼前这个穷修车工，是未来的财阀太子爷。\n他重欲重欲重欲！\n她会因为绿了他，被他亲手裹上辣椒面沉塘。\n而他会在剧情作用力下，对真女主一见钟情。\n摆脱炮灰命运，从拒绝同房开始。\n为了保住小命，江圆圆开始了精密的脱身计划：\n1、忍痛拒绝诱惑，死守清白底线绝不生娃；\n2、大义灭亲，把吸血全家骗去电子厂打螺丝给她挣钱；\n3、伪装乖巧，背地里海投简历攒钱独立。\n她以为自己做得天衣无缝，随时可以抽身而退。\n却不知道，何域齐每晚看着她的眼神越来越黏腻湿热。\n他白天打四份工，晚上在小木床上把她锁死。\n当她准备逃跑那天。\n何域齐慢条斯理地脱衣服，露出八块腹肌和人鱼线：\n“想跑？很可惜，门锁死了。乖乖躺下，我们生宝宝。”", "tags": ["豪门总裁", "现代言情", "总裁", "作精"], "borderColor": "#1abc9c", "backgroundColor": "#1abc9c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "穿成财阀男主的心机女秘书", "fullTitle": "穿成财阀男主的心机女秘书", "link": "https://fanqienovel.com/page/7623007618532903960", "data": [13.72, 14.44, 14.54], "trend": 0.82, "latest": 14.5, "wordNumber": 237479, "desc": "贪财小迷糊x腹黑掌权人（评分还会涨）\n孟静意外穿书，发现自己是一本顶级财阀文中的恶毒女秘书。\n原著中她利用职务之便，屡次陷害女主，并且使出浑身解数勾引男主，甚至多次下药，企图挟子上位。\n事情败露被扔到山区，嫁给了大她二十岁的老光棍，最后夜里起来喂猪的时候不小心摔在猪圈里，被猪咬死了。\n而男女主没了孟静这个最大的障碍，先婚后爱了。\n一朝穿书后，孟静兢兢业业的扮演秘书的角色，疯狂攒钱准备跑路。\n男主工作她递笔，男主感冒她送药，从不越界，被评价为二十四孝好秘书。\n书中年会当天，原剧情会发生孟静下药剧情。\n等等！明明没下药怎么还是被男主压在身下了？\n孟静吓得赶紧提前跑路，却不想被从不失控的男主给彻底盯上了。\n不是说性冷淡吗？怎么一夜七次啊！\n-\n千等万等，终于等到女主高调回国，孟静立刻跑路，在自己的小店喜滋滋的数着卡里的余额，幻想今后夜夜笙歌男模不重样的日子时，被男主堵住了。\n孟静：“你今天不是结婚吗？”\n裴淮京冷笑：“新娘跑路了，我结哪门子婚？”\n人都知道裴淮京最护短，裴淮京也乐意护着孟静，他怜惜她年纪小，格外纵容些。\n即使她多次骗他奢侈品去折现。\n裴淮京：为什么不骗别人只骗我呢？嗯，她爱", "tags": ["豪门总裁", "现代言情", "腹黑", "穿书", "大佬", "位尊权重"], "borderColor": "#3498db", "backgroundColor": "#3498db22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "原创乙女向短篇", "fullTitle": "原创乙女向短篇", "link": "https://fanqienovel.com/page/7611356991092427801", "data": [12.2, 12.38, 12.6], "trend": 0.41, "latest": 12.6, "wordNumber": 252592, "desc": "【纯bg，一切为个人xp服务】\n【较多章节都偏强制，不吃这口的不要看】\n【会有私设，介意的不要看，代不进别勉强】\n【看到含“女主”等词汇的评论会删，有漏掉的欢迎大家艾特我】\n【有其余任意雷点也都不建议阅读，请丢掉大脑观看】\n【喜恶同因，你不喜欢说明不是写给你看的】\n1.邻居是暗恋你已久的阴湿男\n2.……\n3.捡到的失忆男是总裁\n4.丈夫的上司看你的眼神好像有点奇怪\n5.清冷校草甘愿被你\n6.跟体育生竹马共感后\n7.……\n8.丈夫死后\n9.吸血鬼你被人类医生捡到后\n10.霸凌咖怎么变成你的狗了\n11.……\n12.家道中落后\n……", "tags": ["豪门总裁", "现代言情", "甜宠", "独宠", "HE", "忠犬"], "borderColor": "#e67e22", "backgroundColor": "#e67e2222", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "我老婆身娇体弱，得宠着", "fullTitle": "我老婆身娇体弱，得宠着", "link": "https://fanqienovel.com/page/7620996087670639641", "data": [9.72, 9.9, 9.94], "trend": 0.22, "latest": 9.9, "wordNumber": 280752, "desc": "[病弱清冷女主*好人男主]\n（双洁，偏温馨向细水长流小甜文）\n秦婳跳江自杀了，但没死成，她被贺闻舟救了下来。\n贺闻舟是一个刚破产的总裁，为了五千块的见义勇为奖，他救了一个跳江自杀的女人。\n但那女人醒来后张嘴就对他喊老公。\n起初的贺闻舟觉得秦婳是个神经病，嗤笑道：“跳个江把脑子跳没了？”\n后来，贺闻舟觉得有个老婆也不错。\n再后来，他蹲在秦婳面前轻声哄着：“乖乖，你别生我气了好不好？”\n……\n燕州所有人都知道，那位商界新贵贺闻舟又重新回来了。\n跟以往不同的是，他身边多了一位夫人。\n夫人身娇体弱，三步一咳，五步一喘，常常需要拿药娇养着。\n而那位从不信佛的贺总开始常常出入寺院，跪在地上请求上苍护佑夫人安康。\n……\n起初，贺总觉得他家乖乖无父无母，是个需要他宠着的小可怜。\n后来，他被绑架时，他看到他那身娇体弱的老婆一人单挑数十人来到他面前，看向对面，嗓音低冷：“你算个什么东西？”\n第二天，贺总从新闻上看到了他对家破产的消息。\n贺总后知后觉，他老婆好像才是那个霸总。\n再后来，贺总努力保持着微笑：“不是小可怜吗？你怎么是秦家掌权人啊。”", "tags": ["豪门总裁", "现代言情", "总裁", "宠妻", "大佬", "双洁"], "borderColor": "#27ae60", "backgroundColor": "#27ae6022", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "倒贴三年？池小姐夺回身体杀疯了", "fullTitle": "倒贴三年？池小姐夺回身体杀疯了", "link": "https://fanqienovel.com/page/7646959026944609305", "data": [16.56, 16.84, 16.71], "trend": 0.15, "latest": 16.7, "wordNumber": 266384, "desc": "（疯批千金+野性军火大佬+全程高燃撕反派+夺回被夺舍身体）\n　　身体被废物魂魄占据三年，嫁给死对头不说，还被欺辱三年。\n　　回魂后的池星薇，窝囊一秒都算犯规！\n　　谢晏昭为外面女人掐着她脖子让她去死？池星薇一脚将他踹的五脏六腑碎裂。\n　　白莲花戴着她的珠宝上门挑衅？池星薇笑的一脸疯魔，生生将其撕碎。\n　　面对奴役她的渣男全家，傲然丢下一句：“谢晏昭这废物我不要了！”\n　　所有人都认为池星薇在玩欲擒故纵。\n　　毕竟她爱谢晏昭极深，不然不会倒贴五个亿嫁进谢家。\n　　然而迎接她们的，是她彪悍的收回所有倒贴。\n　　见她越闹越凶！\n　　谢晏昭：“我们的关系可不是你玩欲擒故纵能改变的！”\n　　池星薇笑的一脸温柔嗜血，抬脚将他踹到五脏俱裂：“死跟离婚，你选一个！”\n　　她凶残的撕碎所有人。\n　　所有人都说她再怎么横又如何？她甩掉的那个大佬回来，她一切都玩完，肯定会被狠狠报复。\n　　然而没等男人回来，池星薇连夜飞出国。\n　　在异国的街头，抓住战斐的衣襟怒问：“为什么不拦着我点，嫁给那废物真TM恶心死我了！”", "tags": ["豪门总裁", "现代言情", "青梅竹马", "虐渣", "大佬", "双洁"], "borderColor": "#8e44ad", "backgroundColor": "#8e44ad22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "【普女】他们都对我很好奇", "fullTitle": "【普女】他们都对我很好奇", "link": "https://fanqienovel.com/page/7646360547536948248", "data": [16.59, 16.59, 16.65], "trend": 0.06, "latest": 16.7, "wordNumber": 194360, "desc": "【普女万人迷+兄弟雄竞+男全洁】\n宗炎爱惨了林素，爱到为她发疯，为她去死。\n外人想象中的林素，干净美丽，大概是个仙女。\n实际上的林素，木讷普通，柔弱可欺。\n只要见过她的人，都会发出一声质疑，尤其是宗炎的几个好兄弟。\n他们都怀疑林素这个普普通通的女人给宗炎这个顶级豪门少爷下蛊了！\n可后面，宗炎车祸意外失忆，忘了林素，所有人都在阻止他们见面。\n—\n林素是一本替身文里被替身女主取代的炮灰女配。\n宗炎会忘了她，爱上一个声音跟她相似却长得比她漂亮的替身。\n她不甘心，开始各种作死，最后落了一个被驱逐出京的下场。\n—\n可后来……他们都爱她。", "tags": ["豪门总裁", "现代言情", "总裁", "豪门世家"], "borderColor": "#f1c40f", "backgroundColor": "#f1c40f22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "妹妹嫌男友冷淡？但我亲得挺爽", "fullTitle": "妹妹嫌男友冷淡？但我亲得挺爽", "link": "https://fanqienovel.com/page/7625274054341053465", "data": [11.03, 11.03, 11.04], "trend": 0.01, "latest": 11.0, "wordNumber": 297492, "desc": "【豪门太子爷+小甜文+妹妹用男友照片骗我网恋+追妻火葬场+男洁】\n苏浅母胎单身，意外和人网恋。\n好消息：男友188，八块腹肌，冷白皮校草。\n坏消息：他是同父异母的妹妹冒充的。\n好消息：照片是妹妹男友，豪门太子爷江寂。\n传闻这位太子爷性子冷淡，都不让妹妹碰。\n苏浅贪财又好色，又想报复妹妹，干脆主动勾搭江寂。\n太子爷胃疼？她天天送早餐！\n太子爷喝醉？她主动送他回家！\n太子爷口不对心？她依旧把他宠上天。\n——\n后来，苏浅觉得江寂太难追了，打算和豪门相亲对象结婚。\n没想到，太子爷疯了。\n一向冷淡的男人追到港城，红着眼，把她按在了婚纱照前。\n“浅浅，是不是怀了宝宝，你才不会抛弃我？”\n.\n【小剧场】\n妹妹：她是骗你的，她是为了报复我！\n太子爷：她只骗我，说明她爱我。", "tags": ["豪门总裁", "现代言情", "总裁", "甜宠", "豪门世家", "追妻火葬场"], "borderColor": "#16a085", "backgroundColor": "#16a08522", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}], "青春甜宠": [{"label": "在帅哥评论区口嗨掉马后", "fullTitle": "在帅哥评论区口嗨掉马后", "link": "https://fanqienovel.com/page/7636603807224302617", "data": [27.45, 29.44, 31.2], "trend": 3.75, "latest": 31.2, "wordNumber": 257605, "desc": "【外纯内黄  X 冷拽爹系】\n\n林雪纯喜欢在帅哥评论区口嗨。\n最近她盯上了一个抖音博主，ID叫ksmk123。\n对方188、冷白皮、薄肌男。\n精准踩在她审美点上。\n借着网络掩护，她在对方私信里肆无忌惮——\n\n【想看哥哥腹肌。】\n【哇，屁股好翘。】\n【我发现哥哥锁骨下面有颗痣，对了，说到下面……】\n\n奇怪的是，对方似乎并不排斥。\n她要看什么，他就发什么。\n聊天尺度越来越大。\n\n直到她的手机进水送去维修。\n第二天，聊天记录被人挂在校内墙上——\n《惊！传媒学院林XX表面清纯女神，实则在网上跟男人各种撩骚》。\n全校炸裂！\n林雪纯被舆论淹没。\n就在此时，从不发朋友圈的校草郗辰洲破天荒地更新了一条动态：\n“我女朋友跟我的小情趣。有问题？”\n配图是ksmk123的抖音个人主页截图。\n全校再次炸裂！\n\n林雪纯整个人都懵了。\n她每天口嗨的博主竟、竟然是校草郗辰洲？\n救命！\n她羞耻到只想跑路。\n却被某人堵在宿舍门口。\n“宝宝，跑什么？”\n“不是想摸我腹肌，给你摸。”", "tags": ["青春甜宠", "现代言情", "校园"], "borderColor": "#e74c3c", "backgroundColor": "#e74c3c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "重生后，冷拽死对头被我亲爽了", "fullTitle": "重生后，冷拽死对头被我亲爽了", "link": "https://fanqienovel.com/page/7639375832493853720", "data": [9.31, 11.51, 12.95], "trend": 3.64, "latest": 12.9, "wordNumber": 257570, "desc": "评分刚出，后期会涨，宝宝们不要被吓到(^з^)-☆\n【明媚小仙女X冷拽太子爷丨大学校园+同居+系统+死对头】\n卢筱筱在大四那年遭人毒害身亡。\n再睁眼，她重生到大一，还被迫绑定了系统。\n必须和死对头邵恩辞完成100件羞耻社死的任务，\n才能彻底复活。\n［任务1：篮球赛结束，当众强吻他。］\n卢筱筱：……老天奶为何如此整我！\n-\n邵恩辞，智商天花板，AI领域天才，家世显赫。\n191浓颜帅哥，薄肌冷白皮，爱滑板爱运动。\n高中起就是她的死对头，两人见面必掐。\n因为一条百科乌龙，众人都以为他们是一对。\n昨天她火速避嫌：“我谈百合都不会跟他有一腿。”\n没想到今天，众人便看见她在篮球场当众强吻他，\n并且嗲着嗓音说：“哥哥，你唇好甜。”\n众人傻眼：？\n-\n某晚卢筱筱为了完成任务，厚着脸皮住进他家里。\n偷看他洗澡，半夜爬上他的床，趁他睡觉摸他腹肌，\n这些邵恩辞都能忍。\n唯独接受不了她一个女孩子偷藏他裤衩这件事。\n急！暗恋对象成了变态怎么办？\n-\n后来兄弟邱柏野得知真相，提醒他：\n“她只是为了完成任务才接近你，你被骗财骗色了！”\n邵恩辞：“玩我都不介意了，还在乎被骗吗？”\n邱柏野：……哥们，你没救了。", "tags": ["青春甜宠", "现代言情", "校园", "系统", "学霸", "暗恋"], "borderColor": "#e91e8c", "backgroundColor": "#e91e8c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "漂亮女配觉醒，高冷校草后悔了", "fullTitle": "漂亮女配觉醒，高冷校草后悔了", "link": "https://fanqienovel.com/page/7640429134237142041", "data": [15.79, 17.65, 18.96], "trend": 3.17, "latest": 19.0, "wordNumber": 221037, "desc": "【重生大学校园｜竹马男二上位｜男主火葬场】\n重生后，沈雨棠才知道，原来她是校园文里漂亮的恶毒女配。\n上一世，她身为千金大小姐，卑微追求穷小子傅寒生，掏心掏肺对他好，花钱给他买衣服，花钱为他奶奶治病，砸光手里的金钱捧他成为科技新贵。\n傅寒生却始终熟视无睹，对她冷淡如冰。\n这一世，她不追了！\n起初傅寒生毫不在乎，只用八个字点评她的行为：“欲擒故纵，自作多情。”\n后来，傅寒生眼睛通红，卑微地冲到沈雨棠家拍门，“沈雨棠，你跟他在一起了？你不是喜欢我吗？”\n哪料，开门的竟是桀骜太子爷贺烬，男人唇部带着吻痕，嘲讽地笑：\n“找我女朋友，你欠揍啊？”\n-\n沈雨棠从小有个跟她作对的竹马——贺烬。\n曾经，贺烬看着她追求傅寒生，冷声嘲讽：“眼睛瞎了，脑子抽了。”\n后来，贺烬紧紧搂着她的腰，低声哄道：“小公主，再亲我一口，嗯？”\n-\n【我一直在等，等你的目光落在我身上】", "tags": ["青春甜宠", "现代言情", "重生", "青梅竹马", "追妻火葬场", "男二上位"], "borderColor": "#9b59b6", "backgroundColor": "#9b59b622", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "盛夏青苹果", "fullTitle": "盛夏青苹果", "link": "https://fanqienovel.com/page/7600899075172486168", "data": [50.28, 50.28, 51.87], "trend": 1.59, "latest": 51.9, "wordNumber": 267673, "desc": "【校园+借住+双学霸+男暗恋+超绝纯爱】\n在学校里，池遂和季溪闻有着云泥之别。\n他是众人口中的风云人物，年级大榜前三的常客，理科竞赛的种子选手，人缘奇好，一张堪比顶流明星的帅脸更让无数女生趋之若鹜。\n而季溪闻是个不起眼的转校生。\n沉默寡言，穿着廉价的衣服，厚重的刘海遮住了脸。\n在班里默默无闻。\n……\n没人知道。\n每周五晚上，他们都会回到同一个家。\n-\n第一次见到季溪闻，大少爷只看一眼兴致缺缺收回视线。\n并且约法三章。\n1.在学校里不准说我们住在一起\n2.不准跟我打招呼\n3.不要把我的事情告诉家里人\n季溪闻点头应好。\n-\n后来发现有人往季溪闻书里塞情书的时候。\n池遂气急败坏。\n把人堵在家里，警告道：“我家不能早恋，不然我就……”\n季溪闻抿着唇看他：“就什么？”\n对上少女清亮的眼眸，他垂下头无可奈何。\n“我会难过的。”\n—\n暗恋是一颗酸涩青苹果\n天之骄子也会尝到自卑\n*\n超绝钝感学霸软妹vs烂脾气嘴硬混球\n一个猴儿一个拴法ᥫᩣᵕ̈", "tags": ["青春甜宠", "现代言情", "校园", "总裁", "学霸", "暗恋"], "borderColor": "#f39c12", "backgroundColor": "#f39c1222", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "【普女】：我怎么会喜欢她！", "fullTitle": "【普女】：我怎么会喜欢她！", "link": "https://fanqienovel.com/page/7602919905331006489", "data": [21.9, 21.9, 23.11], "trend": 1.22, "latest": 23.1, "wordNumber": 233867, "desc": "社恐透明老实人vs各种类型阴湿男\n—\n村里发生了丑闻。暑假时候，马上上五年级江上被迫转学到另一个城市，和爸妈住在城中村的月租房里。\n—\n柯青是她在这里认识的第一个朋友。他皮肤白得近乎病态，身形瘦削得厉害，嘴唇薄而淡，一双眼眶大得突兀，眼珠子却十分的小。\n起初柯青垂着脖颈坐在门口打游戏，全然不理她。她说话说多了，他那双漆黑无机质瞳孔会一点点左移，再慢吞吞抬起，落在她身上，盯——。他想开口要她不要说话，又觉得说话很麻烦，所以脸上非常的纠结。最后，他怕麻烦的没有说话。\n后面，江上在柯青一脸你好烦啊时，冲他一笑。他睫毛轻颤，眼神飘忽落到游戏上。过了几分钟，声音没有情绪含糊道：“江上是笨蛋。”\n—\n转学第一天见到了王林。他眉眼生得明亮，眼型偏圆，一笑弯成月牙，像是天生被太阳偏爱的人。\n她是班里透明边缘人，而王林人缘好到爆，所以他们没有任何的交集。\n……\n张方七靠着江上打游戏。\n远处，身旁李嘉豪问道：“王林，你在看什么？”\n—\n张方七高一转过来，一个超级富二代。原本与她毫无交集，不过一次换座成为同桌后，一切变的不一样。\n“你表情和黄漫上一样色色。”\n“我们试试接吻吧，我真的超想知道这是什么滋味。”", "tags": ["青春甜宠", "现代言情", "校园", "学霸", "第一人称"], "borderColor": "#1abc9c", "backgroundColor": "#1abc9c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "暗恋对象说他喜欢乖乖女！", "fullTitle": "暗恋对象说他喜欢乖乖女！", "link": "https://fanqienovel.com/page/7645303606110850073", "data": [7.07, 7.07, 7.92], "trend": 0.84, "latest": 7.9, "wordNumber": 256552, "desc": "【安静温软乖巧x又酷又拽会撩】\n【大学校园+男一见钟情+女暗恋成真+甜撩+双洁HE】\n季辞夜，天之骄子般的存在。\n喜欢他的女生更是不计其数，林雾桐就亲眼撞见过一场表白。\n去往KTV卫生间的走廊里，有女生甜着声音问他喜欢什么类型的女孩。\n片刻沉默后，她清晰的听见了两个字，“乖的。”\n-\n林雾桐，典型的乖乖女，又乖又纯。\n在一场生日宴上，她无意闯进了一间休息室，又误打误撞看见了正在换衣服的季辞夜。\n慌忙道过歉后就想逃离，却被男生截住退路。\n耳边落下一记撩人的低笑。\n季辞夜一边系着衬衫纽扣，一边慢条斯理道，“看都看了，想一走了之？”\n\n——\n毕业两年后，风云人物季辞夜再次踏入京大校园。\n满心崇拜她的学妹一脸好奇又惊讶的问，“学长，您怎么突然回学校了？”\n季辞夜：“来接女朋友。”\n想当初，季校草有神秘女友一事在京大传的沸沸扬扬，任谁都没有扒出女生信息。\n如今学妹大着胆子追问，“是之前和您传绯闻的那个女朋友吗？”\n银色戒指在阳光下泛着耀眼的光芒，男人唇角弧度肆意不羁，“嗯，是她。”\n一直都是她。\n也只有她。\n他生涩的爱恋，懵懂的悸动，想要共此一生的心，都只属于一个人。", "tags": ["青春甜宠", "现代言情", "校园", "暗恋", "HE", "双洁"], "borderColor": "#3498db", "backgroundColor": "#3498db22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "弟弟用我照片，网恋疯批太子爷", "fullTitle": "弟弟用我照片，网恋疯批太子爷", "link": "https://fanqienovel.com/page/7636730881519914046", "data": [22.77, 23.65, 23.49], "trend": 0.72, "latest": 23.5, "wordNumber": 218273, "desc": "刚开分，会涨【网骗掉马+微强制爱+甜宠+双洁】乖乖女重生变坏VS疯批混血天龙人\n上一世，乔书棠的弟弟用她照片网恋，噢不，是网骗，异国财阀继承人凌珩，不曾想对方是个疯批天龙人。掉马后，被他报复性羞辱导致抑郁跳楼。\n在弟弟葬礼上偶遇，乔书棠被凌珩带车队围追堵截，慌乱间把车开进江里……\n重生归来，乔书棠费尽心思改写姐弟命运。\n不就是介意人妖骗感情吗？我顶替弟弟亲自跟你网恋。\n不就是假扮高中生吗？谁还不会装嫩呢？\n不就是花了你一百多万吗？等我攒够了钱还你就分手。\n乔书棠自以为马甲捂得很好，直到某天，远在异国的他闪现在她大学宿舍楼下。\n蓝宝石般的眸中只有她：“小骗子，骗财还是骗色随你挑，骗我一辈子好不好？”\n乔书棠知道他是人前君子人后疯子，哪敢答应？\n嘴上说好，见机逃跑。\n太子爷疯了般找她，终于成功堵到她。\n不可一世的贵公子低下头，眼尾猩红：“老婆，你不能对我…始乱终弃！”\n乔书棠步步后退：“凌珩，你知道的，我是骗子，我不爱你。”\n他弯唇浅笑：“骗人很费脑细胞的，你为我消耗掉的上亿个脑细胞，都是你爱我的证明！”", "tags": ["青春甜宠", "现代言情", "重生", "学霸", "甜宠", "双洁"], "borderColor": "#e67e22", "backgroundColor": "#e67e2222", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "疯撩！又野又欲！被偏执哥哥缠上", "fullTitle": "疯撩！又野又欲！被偏执哥哥缠上", "link": "https://fanqienovel.com/page/7643116702971989016", "data": [4.93, 5.24, 5.47], "trend": 0.54, "latest": 5.5, "wordNumber": 268052, "desc": "【重生+病娇+甜撩+暗恋+双处+女救赎男/阴湿亡夫/HE】\n明媚小太阳*阴湿病娇变态*偏执狂\n想要摆脱自己的丈夫江问，是孟雨浓多年的心愿。\n和他结婚的那几年，她过得胆颤心惊，无时无刻不在害怕他。\n江问就是一个变态，他囚禁她，还喜欢将她关在地下室，然后用他那湿漉漉的舌头舔她。\n她恨他，恨不得他死去才好。\n终于有一天，江问真的死了，死在了她怀中。\n“我死了，宝宝开心吗？宝宝以后也不用再怕我了。”\n她的心愿终于达成，可她却并不开心。\n*\n重回大一那年，孟雨浓忍着害怕，这一次，她主动接近江问这个变态。\n“江问，我给你亲亲。”\n“江问，你很缺钱吗？我给你钱。”\n她希望他看在她对他这么好的份上，以后不要恩将仇报，不许再囚禁她了。\n江问，以后不能再当变态了噢~\n也不要偷我底裤了！！！", "tags": ["青春甜宠", "现代言情", "校园", "重生", "甜宠", "病娇", "暗恋"], "borderColor": "#27ae60", "backgroundColor": "#27ae6022", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "【酸or涩】", "fullTitle": "【酸or涩】", "link": "https://fanqienovel.com/page/7646232020447677465", "data": [7.01, 7.25, 7.51], "trend": 0.5, "latest": 7.5, "wordNumber": 152205, "desc": "沈清韵暗恋了盛司珩整整三年。\n她记得他考试时转笔的速度，记得他只喝冰美式不加糖，记得他对所有人都温柔有礼——却从不多看她一眼。\n她是年级第一的沉默学霸，他是万人迷校草。\n平行线不该有交集。\n所以她把秘密锁进日记本，一锁就是八年。\n再见面时，她是急诊科最冷静的住院医师，他是盛氏集团最年轻的掌门人。\n他变了，变得霸道、强势、步步紧逼。\n他没变，依然温柔、疏离、让人捉摸不透。\n原来双向暗恋，才是最甜的酸。", "tags": ["青春甜宠", "现代言情", "学霸", "甜宠", "暗恋", "HE"], "borderColor": "#8e44ad", "backgroundColor": "#8e44ad22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "橘咖", "fullTitle": "橘咖", "link": "https://fanqienovel.com/page/7312837497564695604", "data": [4.86, 4.91, 4.92], "trend": 0.05, "latest": 4.9, "wordNumber": 288907, "desc": "【实体已上线，书名《橘咖》】\n裴霜第一次见到李长嬴是在西宛北站。他很高，身形颀长、比例极好、气质凌然。大背头，黑皮衣，黑墨镜，复古渐变破洞裤。\n男明星，酷哥，潮男。\n这是裴霜对这人的第一印象。\n事实也大抵如此，西宛大学新生报道第一天，这人就出了名。学校表白墙和论坛上疯传这人流连于万花丛中片叶不沾身，广撒网不走心，被称为海的嫡长子，是个渣男。\n后来——\n裴霜看着他，淡声说：“你脸又红了。”\n“……”\n李长嬴将头埋在她颈间，半晌后生无可恋的嗯了声。\n————\n李长嬴向朋友转述：“在我不认识她的情况下，她准确无误地叫了我的名字，还夸我长得好看，名字好听。”\n最终他得出结论：“她对我有意思。”\n朋友问：“你知道你属于哪种男生吗？”\n紧接着朋友犀利点评：“愿者上钩型，人家估计鱼饵都没放，你就主动送死了。”\n“……”\n酷哥vs拽姐（X）\n自我攻略恋爱脑vs撩而不自知（√）\n#春为发生，夏为长嬴#\n【感情节奏快，不喜勿喷，谨慎入坑，万分感谢。前前后后多次修稿，相关评论可能消失、错位，实在不好意思(⋟﹏⋞)】", "tags": ["青春甜宠", "现代言情", "校园"], "borderColor": "#f1c40f", "backgroundColor": "#f1c40f22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}], "现言脑洞": [{"label": "看见弹幕时白月光回国了", "fullTitle": "看见弹幕时白月光回国了", "link": "https://fanqienovel.com/page/7643830276526722110", "data": [32.83, 32.83, 36.67], "trend": 3.83, "latest": 36.7, "wordNumber": 230129, "desc": "（女主控勿看，超高洁勿看，超敏感人群勿看，多视角，非轻松文，男主前期心机偏执狂）\n绿茶偏执阴暗男二VS温柔白月光\n温以宁从小就是人群里的月亮，温柔漂亮善解人意。高中时无数人下课挤在走廊，只为远远看她一眼，包括那个永远站在角落的沉默少年\n——陆斯年。\n后来她出国深造，那段岁月被彻底封存。\n直到某天，她的视野里突然飘过弹幕：\n——“男二好可怜，守护了女主一辈子，却从来没被爱过。”\n——“听说他有个白月光？那又怎样，白月光只是过去式。”\n——“可惜了，他注定要爱女主一生一世。”\n——“等等，白月光好像叫……温以宁？”\n她心头一震，顺着弹幕指引回国，见到了那个所谓的“男主”，也见到了陆斯年。\n陆斯年温柔体贴，是所有人眼中深情的男二，命中注定要守护原女主，爱而不得地过完这一生。\n系统告诉他：只要完成任务，就能再见到他的白月光。\n他其实找过温以宁，但世界规则像一睹透明的墙，他永远找不到她。\n而她也从来没有注意过他。\n于是陆斯年学会伪装，把偏执阴暗藏在温柔皮相之下，按部就班地扮演一个深情配角。\n只有陆斯年自己知道，所有体面都是装出来的，骨子里早烂透了。", "tags": ["现言脑洞", "现代言情", "系统", "总裁", "豪门世家", "久别重逢"], "borderColor": "#e74c3c", "backgroundColor": "#e74c3c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "恋爱脑能传染？幸好我是个神经病", "fullTitle": "恋爱脑能传染？幸好我是个神经病", "link": "https://fanqienovel.com/page/7641990468129016857", "data": [7.21, 7.33, 8.78], "trend": 1.57, "latest": 8.8, "wordNumber": 291601, "desc": "冷脸萌x纯情骚＋沙雕整活+半截读心+皮肤饥渴+自我攻略\n姜灵焕穿进古早玛丽苏贵族学院文，绑定“反恋爱脑”系统，靠阻止全校磕cp、打击不文明恋爱行为续命：\n霸道少爷用广播强势示爱，全校磕爆！恋爱毒气暴涨！\n她把广播示爱爆改英语听力，全校萎掉：？这是什么脏东西\n还天天到处打击不文明恋爱行为：\n有人图书馆激吻，她将乒乓拍精准扔到两人嘴巴之间：“这不是你们的大床房。”\n有人泳池狠狠爱，她举着插线板放在泳池边：“再不出来，让你们做亡命鸳鸯。”\n有人树林里调情，她牵着几条狗冲进去：“别在小树林法天法地！”\n全校恋爱脑：姜灵焕是地狱来的魔鬼！！\n-\n姜灵焕日常被“恋爱毒气”侵扰，一被侵入就想找人亲嘴子。\n后来，她发现待在校草兼学生会会长的身边就能保持清醒，跟他碰一下，就能回血！接触越多，回血越快！\n于是，姜灵焕把谢风叙当充电宝，变着花样跟他制造接触。\n谁曾想谢风叙不仅有皮肤饥渴症，还能听见她的心声，还只能听一半！\n她内心：他手好大，感觉能一把握住我的头。胸肌练得不错。\n他听到：他手好大，感觉能一把握住我的…胸，不错。\n他：？她好变态\n她：？我冤枉啊\n后来，自我攻略的谢风叙在勾引姜灵焕的路上一去不复返，从闷骚到明骚！\n姜：你真的好骚啊！", "tags": ["现言脑洞", "现代言情", "校园", "系统", "穿越", "搞笑轻松"], "borderColor": "#e91e8c", "backgroundColor": "#e91e8c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "成五爪金龙幼崽，萌翻全网举国宠", "fullTitle": "成五爪金龙幼崽，萌翻全网举国宠", "link": "https://fanqienovel.com/page/7654990870877326361", "data": [4.8, 4.95, 5.98], "trend": 1.18, "latest": 6.0, "wordNumber": 213456, "desc": "（动物文）（团宠）（全网直播）（萌系神明）（国家级饲养）（不会变人）\n沈漪期末周第四个通宵，猝死在图书馆。\n再睁眼，她成了一条巴掌大的五爪金龙幼崽！！\n金色鳞片，透明利爪，还会喷火！\n既来之则安之，啃蛋壳，晒太阳，等长大了腾云驾雾！龙生美滋滋！\n直到一个户外主播把镜头怼到了她脸上。\n三千人在线，亲眼看她打了个喷嚏烧掉一片树叶，又用尾巴毁灭证据，然后装死。\n这段视频传到网上全球爆火，举国震动！\n最高层拍桌子：她是华夏五千年的信仰！不是研究对象，是客人！谁敢提\"切片\"两个字，上军事法庭！\n沈漪被供得五迷三道，终于大发慈悲在平板上写下第一句话。\n“饿了。”\n全场两百名顶尖科学家：…………\n张教授（含泪怒吼）：大道至简！这是在测试我们的供养诚意！快上五十公斤顶级雪花牛排！！！\n沈漪叼着蓝鳍金枪鱼大腹，尾巴尖愉快地扫来扫去。\n挺好的，这帮人类，还算识相。", "tags": ["现言脑洞", "现代言情", "幻想言情", "重生", "直播", "团宠"], "borderColor": "#9b59b6", "backgroundColor": "#9b59b622", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "不怼！阴湿女配怎么被男主盯上了", "fullTitle": "不怼！阴湿女配怎么被男主盯上了", "link": "https://fanqienovel.com/page/7611568734850780222", "data": [12.75, 13.14, 13.41], "trend": 0.67, "latest": 13.4, "wordNumber": 288095, "desc": "【双洁穿书+女主回归+网恋翻车+猫鼠游戏】【评分刚出，后面会涨！入股不亏哦~】\n【怂且自恋小太阳妹宝vs恶劣真阴湿皮肤饥渴症男主】\n闻眠是个怂包，上辈子救小女孩横死马路，本以为能升天堂，结果穿进一本大学校园文，成了痴恋男主的阴湿女配。\n原主做过的好事包括：跟踪男主、视奸男主、收集男主衣物、网上发骚扰短信。最终惹怒男主，被扔进公海里喂鲨鱼。\n最怕水的闻眠：！！！\n好在原主还没有过度招惹男主，她打算远离男女主安心躺平，却被剧情修正系统888绑定，不按原著走就会回到马路牙子横死街头。\n为了活命，她咬牙完成任务：线上给男主的弃号发骚扰信息，线下狼狈跟踪。\n反正男主早就不用那个微信号了，她只要演到任务结束就行。\n直到某天，那个被废弃的账号突然弹出一条消息：\n“？”\n--\n楚聿州早就发现了那个嘴上说喜欢、一见他就躲的小怂包。\n像只胆小的猫，伸出爪子试探，又随时准备缩回去。\n她以为自己在两个身份间反复横跳演得滴水不漏，他只觉得有趣。\n线上叫他哥哥撒娇，线下叫他学长。\n他一直想看看，这只猫什么时候才会发现自己早已掉进陷阱。\n直到某天，他想要更进一步的时候，那只小猫却连夜跑了。\n楚聿州捏着她手腕，眼底阴郁：\"不是说最喜欢我吗，跑什么？\"", "tags": ["现言脑洞", "现代言情", "校园", "系统", "穿书", "双洁"], "borderColor": "#f39c12", "backgroundColor": "#f39c1222", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "拜托，病娇老公是我自己求来的！", "fullTitle": "拜托，病娇老公是我自己求来的！", "link": "https://fanqienovel.com/page/7617768412449606718", "data": [25.31, 25.31, 25.81], "trend": 0.5, "latest": 25.8, "wordNumber": 163628, "desc": "害怕和陌生人接触的商姝看完一本男主是病娇的小说后发表长篇书评并祈求上天赐她一个病娇老公。\n商姝想要，商姝得到！\n为了掩盖自己病态的内心，裴时昂每次向商姝提出不正常的要求都会先想好充分的理由，但他想的那些理由一个都用不上！\n用不上的原因如下↓↓↓\n不想老婆上班接触别人的裴时昂：“别找工作了，我养你，上班……”\n商姝：行！\n不想老婆和别的男人说话的裴时昂：不要和他来往……\n商姝：行。\n不想老婆穿露背礼服的裴时昂：换一件……\n商姝：行。\n不想老婆出门的裴时昂：不出门行不行……\n商姝：行。\n每次话都没说完老婆就答应了，老婆好爱他！", "tags": ["现言脑洞", "现代言情", "系统", "穿越", "先婚后爱", "病娇"], "borderColor": "#1abc9c", "backgroundColor": "#1abc9c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "直播间每人每天给我一百块", "fullTitle": "直播间每人每天给我一百块", "link": "https://fanqienovel.com/page/7650882559328406553", "data": [11.79, 11.9, 11.94], "trend": 0.14, "latest": 11.9, "wordNumber": 258981, "desc": "刚开分会涨，入股不亏【直播+神豪+变美+逆袭+打脸+爽文+万人迷+雄竞修罗场+男全洁】\n简苏270斤，人丑声甜，是甜心语音厅的女主播，丑照被网恋对象曝光后——\n昔日给她刷礼物的大哥纷纷退款，网友辱骂她、给她p丑图，语音厅以违约为由勒索天价赔偿费。\n即将退网之际，她突然绑定了个“直播间每人每天给我一百块系统”\n“只要有人点进直播间，不管是黑粉还是路人，通通返现一百块！一人一百，上不封顶！”\n简苏果断开播！疯狂挑衅黑粉！\n开播第一天，收入一百万…\n开播第二天，她买房了…\n开播第三天，神豪哥给她怒刷百万…\n【恭喜主播，达成直播间万人成就，获得抽奖机会一次！】\n【恭喜主播，抽中减肥沐浴露一瓶！越洗身材越棒！】\n【恭喜主播，获得神颜水！】\n【恭喜主播……】\n播着播着，她拥有完美的身材，绝美的脸蛋，天籁的歌喉，和数不清的老公粉…\n后来简苏一开播，直播间百万人。\n一招手，无数华子升空！\nPS：究极爽文，内含大量打脸，掉马，修罗场情节，女主万人迷来的，胖的时候就有大哥抢着刷礼物", "tags": ["现言脑洞", "现代言情", "系统", "直播", "虐渣", "打脸"], "borderColor": "#3498db", "backgroundColor": "#3498db22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "穿成耽美文小受的炮灰妹妹", "fullTitle": "穿成耽美文小受的炮灰妹妹", "link": "https://fanqienovel.com/page/7640410171792968728", "data": [13.74, 13.74, 13.84], "trend": 0.1, "latest": 13.8, "wordNumber": 191147, "desc": "【万人迷+微微强制雄竞+伪弯掰直+弹幕戏份多+男全洁】\n温情醒来后发现自己成为了一篇耽美虐文里主角受没血缘的炮灰妹妹\n文中主角受被虐身虐心，和攻恨海晴天\n而她作为推动剧情的工具人需要在必要的时候下线成为主角受黑化的契机\n然后攻受继续纠缠，而她则被众人渐渐遗忘\n温情不想落到这样的结局，于是为了活下去她只能主动破坏剧情\n一次次下来，她最终看到了破防的弹幕，互相敌对的攻受，还有不断上涨的喜爱值\n温情对此觉得满意\n但在她不知道的是，在她看不到的地方，攻受看她的目光却越来越不对劲\n尤其是主角受\n温情完全懵了，看到依旧黑化了的主角受，她心里满是问号\n不过她很快没时间多想了，因为她已经……\n", "tags": ["现言脑洞", "现代言情", "系统", "穿越", "穿书", "魂穿"], "borderColor": "#e67e22", "backgroundColor": "#e67e2222", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "多疑男主？掰几斤苞谷就老实了", "fullTitle": "多疑男主？掰几斤苞谷就老实了", "link": "https://fanqienovel.com/page/7643303306206399513", "data": [5.34, 5.43, 5.44], "trend": 0.1, "latest": 5.4, "wordNumber": 278737, "desc": "先婚后爱+搞笑+女主失忆+1v1+双洁\n【沙雕情绪稳定恢复记忆后大小姐女主x狂傲冷漠多疑看谁都像小三男主】\n祈望某天被告知自己是一本虐文小说里男主的前妻\n原文里出身乡野的她因为老一辈的约定嫁给了男主，但她粗鄙愚昧，是个上不得台面的泥腿子，被所有人鄙夷贬低，最终黑化背叛了男主，落得了一个车祸身亡的下场\n失忆后才流落大山的祈望：谁粗鄙，我吗？\n为了找回记忆，祈望哞的一声去了城里\n可谁知\n本该处处刁难她的恶毒女配：我们的关系就像两瓣屁股那样紧密\n跟她一起背叛男主的小叔子：猪草割完了，啥时候带我去炸牛粪啊\n.\n傅冬十自幼年起生活在充满漠视与算计的环境里，他的傲慢与多疑深入人心，无人知晓他常年独自舔舐伤口的痛苦\n直到祈望朝他伸出手：我带你逃跑\n原生家庭的痛？掰苞谷累到根本没空想\n生性多疑？都用来防小三了\n遇见祈望前，傅冬十的标签是傲慢挑剔，性格多疑的大少爷\n遇见祈望后的傅冬十吃饭后结账：纸巾没用退一下\n本以为幸福会就此延续，直到家中老人去世，傅家立马过河拆桥，他们以祈望的出身为由让两人被迫分开\n后来，傅冬十在某位顶级豪门举办的宴会上见到了对方家中消失多年的继承人\n当看清后，他发现那道被众星捧月在其中的身影，正是他消失了一年的老婆", "tags": ["现言脑洞", "现代言情", "先婚后爱", "双洁", "搞笑轻松", "1v1"], "borderColor": "#27ae60", "backgroundColor": "#27ae6022", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "高危漫画路人自救指南", "fullTitle": "高危漫画路人自救指南", "link": "https://fanqienovel.com/page/7598215355617512472", "data": [8.83, 8.83, 8.84], "trend": 0.01, "latest": 8.8, "wordNumber": 138567, "desc": "【无CP万人迷+迪化+原创漫画+论坛体】\n【如果你突然发现，自己是高危漫画中必死的普通路人，你要如何自救？】\n*\n江时一直不信鬼神，直到她的房客像蜘蛛一样用八条腿趴在天花板上，对她露出痴迷的微笑。\n她的世界观崩塌了。\n机缘巧合，她拥有了看到漫画的能力，\n好消息：漫画介绍了怪物的弱点：吃掉“爱人”后会由于心情低落陷入虚弱状态\n坏消息：这个怪物好像爱上她了……\n\n好不容易活下来的江时打开漫画，读者竟然认为怪物是她饲养的、弱小可怜又破碎的她怎么会是幕后大BOSS——你们糊涂啊！！\n漫画中的人气角色也怪怪的：\n“接下来您有什么打算……”一刀砍下怪物脑袋的狠人男主小心翼翼地询问她\n江时困惑地微微歪头，问我吗？\n“我明白了……但您真的没必要事事为别人考虑。”男主用敬佩的目光注视着她。\n不兑！？你明白了啥？我不明白啊！！\n“您不需要再掩饰了，您为这个世界做的已经够多了。”少女坚定地将她护在身后，“这次，换我保护您。”\n啊？我做了什么吗？\n阴郁厌世反派目光复杂地注视着她，“罢了，若您执意要守护这个世界……”\n*\n众人：您是污浊世界的太阳／指引希望之人／人类最强\n江时：不要再脑补了！是路人不是救世主啊！", "tags": ["现言脑洞", "现代言情", "幻想言情", "无CP"], "borderColor": "#8e44ad", "backgroundColor": "#8e44ad22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}], "玄幻言情": [{"label": "死遁文女主离开，我接盘阴湿男主", "fullTitle": "死遁文女主离开，我接盘阴湿男主", "link": "https://fanqienovel.com/page/7643783382958083096", "data": [5.29, 5.58, 5.94], "trend": 0.66, "latest": 5.9, "wordNumber": 132994, "desc": "贺喜趴在石桌上打盹时做了个梦。\n女主穿书，任务是攻略那美强惨的少年仙君。\n可惜少年好似修了无情道，对她的好感始终不上不下。\n直到被妖魔围攻那一日，她决定赌一把为他而死，好感度终于满了。\n女主攻略成功，死遁回了现实世界。\n少年却因她的死入魔，一夜屠尽千里之地。\n而贺喜的家就在这其中。\n她被吓醒了！\n“喂，阿喜。”\n一颗枇杷砸中她的脑袋。\n穿着青色道袍的少年蹲在墙上，一手撑着下颌，阳光爽朗。\n“你爹说我再攒够一百两，我就能娶你过门了，你高不高兴？”\n贺喜看着自己一年前从尸山血海里捡出来的失忆少年。\n他有着和梦中男主一模一样的脸。\n她表情复杂，“要不……我们婚事还是作罢吧？”\n少年沉了脸。\n——\n阮吱吱回到现实世界，不知为何，时常想起那个肆意潇洒的少年人。\n系统再次出现:【检测到男主黑化值过高，即将毁灭世界！】\n什么？\n他居然这么爱自己！\n怀着微妙情绪，阮吱吱回到书中世界，又一次见到他。\n少年穿着喜服，神情阴霾，手里拿着绳索，缓步而来。\n阮吱吱紧张，“裴厌，我可以解释，你别囚禁我——”\n她被扭断了脖子。\n倒在地上刹那，她见到的是少年把藏着的女孩抓出来，低声威胁:\n“贺喜，你再敢逃婚试试？”", "tags": ["玄幻言情", "系统", "幻想言情", "穿书", "异世穿越", "黑化"], "borderColor": "#e74c3c", "backgroundColor": "#e74c3c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "美人师尊翻车后，惨遭两次囚禁", "fullTitle": "美人师尊翻车后，惨遭两次囚禁", "link": "https://fanqienovel.com/page/7654038704800926744", "data": [5.36, 5.36, 5.9], "trend": 0.54, "latest": 5.9, "wordNumber": 151776, "desc": "【修仙师徒+锁链警告+强制爱+1v3+男全洁】\n江棠以神尊和妖尊的身份收了两个徒弟。\n一个是妖族少尊主，拥有九幽玄蛇血脉，肉身强悍，能越境战斗。\n一个是仙族神君，天生剑骨，以杀问道，以战破境。\n他们哪哪都好，就是有个缺点，占有欲太强，都想做她唯一的徒弟。\n江棠一直藏得很好，他们互相不知道对方的存在，互相以为是她的唯一。\n不料因为一个香囊，她翻车了，而且恰巧还失了修为。\n他们变得陌生，变得肆无忌惮。\n相貌妖异的少尊主将她囚于氤氲的温泉池中，强逼她陪他照着书籍练习。\n“尊师重道还有另一层意思，师尊想听听吗？”\n光风霁月的神君将她囚于方寸的马车内，强逼她直视颠簸无退路的困境。\n“师尊，你是逃不掉的。”", "tags": ["玄幻言情", "穿越", "腹黑", "今穿古", "大佬", "剑修"], "borderColor": "#e91e8c", "backgroundColor": "#e91e8c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "我死后竟成了堕神白月光", "fullTitle": "我死后竟成了堕神白月光", "link": "https://fanqienovel.com/page/7644508917321452569", "data": [4.5, 4.5, 5.03], "trend": 0.53, "latest": 5.0, "wordNumber": 194742, "desc": "（清冷美人x深情疯狗）\n（1v1双洁、年下、青梅竹马、前期忠犬后期变疯狗）\n整个青玄宗都知道云鸢师姐和谢昭师弟二人青梅竹马、从小一起长大，感情好的羡煞旁人。\n直到最近众人发现了不对劲，原本感情极好的二人不知何时起彼此疏远，许久未曾一同出现过。\n有弟子忍不住好奇问谢昭他和云鸢师姐是不是吵架了？\n一向就话少的少年没回答，只是沉着脸死死盯着不远处和新入门的弟子聊着正欢的少女……\n*\n一场梦后，沈云鸢才知道原来她是一本男频升级爽文里男主的早死白月光。\n男主谢昭身为龙族后裔，天生至纯灵体，万分珍贵，六岁时被人带回宗门作为药引活着，只为医治那人灵脉受损的女儿，而沈云鸢就是那人的女儿。\n他之所以对她心生好感，也只是因为她体内有他灵血的缘故，待真正与他相配的女主出现后，他会毫不犹豫将她摁进泥里，一剑捅死。\n于是为了助他飞升，也为了赎罪，她自愿死在他的剑下，还他一场造化。\n多年后，沈云鸢再次重降于世，看着本应位列仙班的男人竟成了令三界众生都闻风丧胆的堕神恶鬼。\n漆黑的夜幕之下，男人踏着血雾而来，冰冷寒凉的手抚上她的脸，赤红的眼眸中流露着浓郁的哀怨与仇恨：“师姐，为什么不要我？”", "tags": ["玄幻言情", "古代言情", "忠犬", "白切黑", "1v1", "双洁"], "borderColor": "#9b59b6", "backgroundColor": "#9b59b622", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "我靠抽卡系统装高手", "fullTitle": "我靠抽卡系统装高手", "link": "https://fanqienovel.com/page/7654641611606854718", "data": [4.03, 4.44, 4.51], "trend": 0.48, "latest": 4.5, "wordNumber": 242108, "desc": "仙门大比，我随手从怀里掏出一把古琴\n全场寂静。\n大师兄颤声：“那是……失踪百年的凤栖琴？”\n我波澜不惊，又从头发上随手取下一根发簪。\n大师姐尖叫:“那是神器青芜簪！”\n后来全修仙界都在传，林执月有一整个随身洞府，藏着无数上古灵器乃至神器。\n只有林执月知道，她这身时装是系统送的。\n今天想穿“烟落叠翠”，明天就穿“流火绯星”，至于后天——\n死系统突然弹窗：【限时卡池“九天玄女”开启，抽齐整套可解锁飞行特效，机不可失！】\n我看着卡池里48个部件以及需要氪金的面部妆容和头发陷入了沉思。\n评分刚出，会涨的，小宝们🥹", "tags": ["玄幻言情", "系统", "幻想言情", "穿越", "异世穿越", "魂穿"], "borderColor": "#f39c12", "backgroundColor": "#f39c1222", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "8小时修仙，老娘卷哭全世界", "fullTitle": "8小时修仙，老娘卷哭全世界", "link": "https://fanqienovel.com/page/7650930355381210137", "data": [5.9, 5.9, 6.21], "trend": 0.31, "latest": 6.2, "wordNumber": 150198, "desc": "【 卷王穿越修仙界+种田+成长+家族】【天道？我即是天道】\n　　穿越了？\n　　挺好。\n　　穿成废柴三灵根？\n　　也行。\n　　全家把我当劳动力，供天才大哥修仙？\n　　……行吧。\n　　但这个修仙界有个破规矩——每天只能修炼四个时辰，多一秒都不行。\n　　说是天道铁律，违者天罚。\n　　大哥每天修炼四个时辰，全家夸他用功。\n　　我笑了。\n　　四个时辰？八小时？\n　　上辈子，我在纺织厂每天站十二个小时，腰椎间盘突出，疼的死去活来都没喊过累。\n　　这算什么苦？\n　　当天晚上，我偷偷修炼了六个时辰。\n　　屁事没有。\n　　第二天，我修炼了八个时辰。\n　　还是屁事没有。\n　　这个世界的人是不是搞错了什么？\n　　所谓的“极限”，不过是他们太娇气罢了。\n　　从此以后——\n　　别人修炼，我修炼。\n　　别人休息，我修炼。\n　　别人谈恋爱，我还是在修炼。\n　　天才大哥被我卷到怀疑人生：你到底怎么做到的？\n　　我：呵呵，等你每天干十二个小时农活还要被骂偷懒的时候就知道了。\n　　后来，全修仙界都疯了。\n　　“那个废柴三灵根，为什么比天灵根还猛？”", "tags": ["玄幻言情", "幻想言情", "穿越", "今穿古", "异世穿越", "魂穿"], "borderColor": "#1abc9c", "backgroundColor": "#1abc9c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "您的强制爱请查收", "fullTitle": "您的强制爱请查收", "link": "https://fanqienovel.com/page/7653870808233675801", "data": [4.85, 4.85, 5.07], "trend": 0.22, "latest": 5.1, "wordNumber": 141160, "desc": "第二人称/强制/阴暗/变态/强烈占有欲/男洁，男主们不择手段的为了得到你\n写名字会用攸悠（YOU）代替\n1v不定（一个或者多个），会写多个结局，你喜欢哪个就看哪个。\n看不了就退，不要抨击我。\n第一个世界，善良可怜的雌蛇你×心机深沉雄兔和嘴硬心软的雄蛇（完结）\n第二个世界，柔弱卑微妻子你×冷酷无情上司 ×心怀鬼胎邻居（完结）\n第三个世界，被盯上的研究员你×漂亮疯子人鱼 ×温柔毒药水母（完结）\n第四个世界，被豢养的魅魔你×圣光偏执天使×谎言诱惑恶魔（更新中）", "tags": ["玄幻言情", "群像"], "borderColor": "#3498db", "backgroundColor": "#3498db22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "男主为爱发疯，但你只想好好活着", "fullTitle": "男主为爱发疯，但你只想好好活着", "link": "https://fanqienovel.com/page/7652408518770691096", "data": [6.72, 6.82, 6.94], "trend": 0.22, "latest": 6.9, "wordNumber": 220589, "desc": "【强调：本文为黑泥向纯代入乙女，有大量g向恐怖描写，男主神经病非人类较多，不要用正常三观对待】\n穿越后，你没有得到金手指，也没有万人迷光环，甚至被某个变态给缠上了。\n什么？他是气运之子，天道宠儿？\n可这个世界是疯掉的世界，气运之子也都是疯子。\n所以你选择了逃跑。\n那就请在保住命的情况下确保自己不被抓住吧。\n\t\n他说他会吃掉你，从头到脚，拆吃入腹。", "tags": ["玄幻言情", "幻想言情", "穿越", "今穿古", "异世穿越"], "borderColor": "#e67e22", "backgroundColor": "#e67e2222", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "病弱小师妹出剑后，全宗门疯了", "fullTitle": "病弱小师妹出剑后，全宗门疯了", "link": "https://fanqienovel.com/page/7651497833127742526", "data": [4.83, 4.83, 4.98], "trend": 0.15, "latest": 5.0, "wordNumber": 286701, "desc": "【修仙+团宠+无敌流+群像、反差萌+护短、爽文】\n凌剑宗新收了个小师妹姜晚，天生绝脉，灵根全无。\n三步一喘，五步一咳，入门三年连炼气一层都没摸到。\n宗门上下都说她命薄，外出历练时，连个最低阶的平安符都没人给她留。\n直到魔族大军压境，护山大阵碎裂，几位天骄师兄浑身浴血，被逼到断剑崖前。\n常年吐血的小师妹从石阶上醒来，叹了口气，随手折了根枯枝。\n一剑挥出，剑气荡平十万魔军。\n全宗门疯了。\n高冷剑尊师尊把私库钥匙塞进她手里：“缺什么，拿。”\n傲娇大师兄日日熬十全大补汤：“谁敢说你废，我先砍了他。”\n清冷佛子为她破戒挡雷劫：“众生可渡，唯她不可伤。”\n后来，上界仙尊降临，妄图夺取她这把“上古第一神剑”的本体。\n整个修仙界大佬拔剑指天：“动她，先问我等手中剑。”", "tags": ["玄幻言情", "群像", "打脸", "魂穿"], "borderColor": "#27ae60", "backgroundColor": "#27ae6022", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}], "古风世情": [{"label": "重生贞观：再续前尘解旧梦", "fullTitle": "重生贞观：再续前尘解旧梦", "link": "https://fanqienovel.com/page/7646423256160816152", "data": [2.29, 2.62, 2.96], "trend": 0.67, "latest": 3.0, "wordNumber": 220939, "desc": "（李承乾➕父子相爱相杀➕弥补历史遗憾➕慢热非爽文，不喜慎入！评分刚出！会涨的！先虐后甜，主父子情）\n\n李承乾死后阴魂不散，魂魄竟重回贞观七年。\n面对从小就偏心的李世民，他直接开启逆子模式，每天有事没事就跑到李世民面前给他添堵气他。\n“阿耶何须这般惺惺作态跑来孩儿这边，青雀在魏王府！”\n“臣这就去引戮自尽，给陛下心爱的爱子腾位置！反正陛下早就想废了我这个太子了吧！”\n李世民发现他的长子在某一天性情大变，连阿耶都不肯喊了。还喜欢天天跑他面前气他！\n“承乾！”\n随着跑去气李世民的次数越来越多，李承乾渐渐发现事情不对劲起来，这不对啊？李世民难道不该是越来越喜欢李泰的吗？\n怎么……李世民还天天跑他面前来刷存在感？", "tags": ["古风世情", "古代言情", "重生", "甜宠", "古色古香", "古言权谋"], "borderColor": "#e74c3c", "backgroundColor": "#e74c3c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "女扮男装上朝后，死对头暗恋成疾", "fullTitle": "女扮男装上朝后，死对头暗恋成疾", "link": "https://fanqienovel.com/page/7651286824677035033", "data": [1.49, 1.69, 1.88], "trend": 0.39, "latest": 1.9, "wordNumber": 116042, "desc": "【女扮男装】【宿敌就是妻子】【对抗路情侣】【双洁1v1】\n前期，桀骜不驯招摇女vs表里不一腹黑男。\n后期，狂拽酷毙帅女帝vs只忠君不一定爱国的绝世大奸臣。\n沈峤觉得她和苏砚简直是天造地设的一对。\n最纯恨的那年，他算计她下狱，让她差点丢官丢命。\n她三年谋划，让他落败，满门抄斩。\n可最后，鹬蚌相争，渔翁得利。\n两人一同死在了牢里。\n死前，这家伙被毒傻了。\n和她说，他心悦她。\n这毒这么烈的吗，给人都毒成啥样了。\n他是不是临死前也要恶心我一把？\n让我死也不安生？\n再睁眼，沈峤又活了，还重回了初见时。\n19岁的苏砚冷冰冰的看着她。\n沈峤：呵，小屁孩，这辈子你可斗不过我。\n可渐渐她发现…\n不对啊…苏砚他不对劲啊！\n重重误会解开，沈峤懵了。\n你真暗恋我啊，我以为你纯挑衅我呢！\n苏砚咬牙切齿，我有病才一直挑衅你！\n直到沈峤身份暴露，苏砚愣愣的看着眼前人。\n他都做好断袖的准备了，你告诉我你是…\n沈峤踩上他的胸口：怎么？苏大人想变卦？\n还觉得我粗鄙难登大雅之堂？\n苏砚握着她的脚踝：殿下金枝玉叶，何来粗鄙一说。\n沈峤窃笑：苏大人向来两幅面孔。", "tags": ["古风世情", "古代言情", "古言权谋", "科举", "女扮男装", "双洁"], "borderColor": "#e91e8c", "backgroundColor": "#e91e8c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "侍妾生存手册", "fullTitle": "侍妾生存手册", "link": "https://fanqienovel.com/page/7646430990331546686", "data": [1.43, 1.51, 1.66], "trend": 0.23, "latest": 1.7, "wordNumber": 220495, "desc": "作品简介 \n\n【无金手指＋无系统+慢节奏＋宅斗宫斗＋后期独宠+养娃日常】\n\n景王赵时雍一向自傲自己知礼守礼，公平公正。\n即便朝中议论自己太过苛责，也不以为意。\n结果一朝栽倒在一个侍妾身上。\n在他还没有意识到的时候，就已经处处偏袒维护她。\n林阮的屋子小？\n换成大的！\n林阮的东西少？\n给，\n多多的给！\n林阮心惊胆战，自己只想躺平当个咸鱼，王爷这是要干嘛？\n因着这份宠爱，\n府里正妃视她眼中钉，日日想要扳倒她，\n一众名门出身的庶妃更是恨她入骨，\n明枪暗箭不曾停歇。\n林阮日日活得提心吊胆，她所求从来不多，只求安分度日，平安生下孩儿，往后伴着儿女安稳养老，半点不愿卷入后宅纷争。\n奈何一身滔天盛宠，反倒将她推至风口浪尖。\n“在我心底，你才是我心中唯一认定的妻。”\n赵时雍低头，温柔吻过她颤抖微凉的唇角，将瑟瑟发抖的人牢牢锁在怀中，似要隔绝外界所有风雨。\n低沉温柔的嗓音落在她耳畔，字字皆是滚烫真心：\n“不必设防，不必躲闪，世间所有风波有我替你挡下。”\n”你只需安安心心，永永远远留在我身边。“", "tags": ["古风世情", "独宠", "古代言情", "双向奔赴", "打脸"], "borderColor": "#9b59b6", "backgroundColor": "#9b59b622", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "死遁后，成了盲眼王爷的白月光", "fullTitle": "死遁后，成了盲眼王爷的白月光", "link": "https://fanqienovel.com/page/7640771121582722110", "data": [1.99, 1.99, 2.14], "trend": 0.16, "latest": 2.1, "wordNumber": 280988, "desc": "（细水长流/日久生情/双向救赎/少年爱恋）\n（评分刚出，后续会涨～）\n　　逃荒北上，苏缨饿得奄奄一息，险些死在漫天风雪里。\n　　是尚书府的盲眼小公子裴修救了她，将她带入府中。\n　　两年后，皇权更迭，裴家一朝倾覆。\n　　抄家那夜，苏缨趁乱将小瞎子救走。\n　　·\n　　那年，苏缨十六岁，带着一个十五岁的盲眼少年东躲西藏讨生活。\n　　一路颠沛流离，苏缨觉得自己还够了恩情。\n　　恰逢意外，裴家兄长找上门，裴修的眼疾也好了。\n　　苏缨趁着一场大雨，跳进水里，成功死遁。\n　　·\n　　五年后，豫州。\n　　苏缨改名换姓，开了一家小药铺，生活平淡如水。\n　　那日，暮春细雨潇潇入夜。\n　　有人踏雨而来。\n　　昔日温雅斯文的小瞎子，成了威震天下的定安王。\n　　裴修心脉受损，少年白头，湿漉漉地站在门口——像是从未走出五年前的那场大雨。\n　　“再救我一次……好么？”", "tags": ["古风世情", "古代言情", "情有独钟", "久别重逢", "互宠"], "borderColor": "#f39c12", "backgroundColor": "#f39c1222", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "病娇前男友篡位登基了", "fullTitle": "病娇前男友篡位登基了", "link": "https://fanqienovel.com/page/7650044982144814105", "data": [1.44, 1.52, 1.59], "trend": 0.15, "latest": 1.6, "wordNumber": 124858, "desc": "【阴湿偏执恋爱脑帝王VS 美貌清醒的大美人，很会训狗】\n【破镜重圆+微强制+上位者破防+救赎+自己哄自己】\n秦文珠没有等来前男友谋反失败的消息，而是他篡位成功称帝。\n父亲从一品国公被贬为了九品县令，一个大家族开始分崩离析。\n偏偏只有她的县主封号还保留着。\n所有人都猜测新帝是在故意羞辱秦家嫡女，没理由唯独放过她一人。\n秦文珠也是这样认为的，毕竟她的确出卖了他。\n周廷玉从小睚眦必报、嘴毒又乖戾，不会看在两人曾热恋过的份上就轻易饶了她。\n她怕这人发疯，也怕被他报复，更怕他察觉---\n她还爱他。\n...\n元宵夜宴，秦文珠故意喝下一杯烈酒。\n看着步步逼近的男人，女孩睁大双眸，泪流满面地看着他，颇是委屈。\n然而下一刻，只见帝王当着众人的面，将醉醺醺的姑娘温柔地搂进怀里，亲手喂解酒汤。\n身量高大的男人收敛一身狠厉强势，在心爱的人面前俯首低语：\n“秦文珠，只要你说一句你爱我，以后你骑我头上都成…小祖宗，别折磨我了行吗？”", "tags": ["古风世情", "古代言情", "嫡女", "病娇", "破镜重圆", "古言权谋"], "borderColor": "#1abc9c", "backgroundColor": "#1abc9c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "表哥他正得发邪", "fullTitle": "表哥他正得发邪", "link": "https://fanqienovel.com/page/7639108323979037721", "data": [4.27, 4.36, 4.4], "trend": 0.13, "latest": 4.4, "wordNumber": 165028, "desc": "云昭窈出身扬州望族，奈何家道中落，母亲临终前攥着她的手：“去京城，投奔你姨母，求她给你寻个好人家。”\n沈临宴是大理寺少卿，温润如玉，清正如月。\n姨母早早告诫她：“你表哥有婚约，是陆家千金。寄人篱下，最要紧是守住本分，莫动不该有的心思。”\n她记下，日日低眉敛目，不敢多看那位表哥一眼。\n起初，沈临宴并未留意这位远道而来的表妹。只觉她寄人篱下，该多照拂几分。\n可日子久了，渐渐发现，这姑娘看着娇弱，骨子里却有股韧劲，他破案如神，却辨不清自己对她牵挂。\n这发乎情、止乎礼的温柔最磨人。云昭窈的心一寸寸沉进不该沉的地方，只好应下了一位京城茶商的亲事。\n消息传开那日，沈临宴堵住她，声音压得极低极稳：“你是真心想嫁？”\n她跪下叩首：“是，求兄长成全。”\n她没说爱，他没越界。\n沈临宴好友顾子寻突然登门，身后跟着个英姿飒爽的姑娘。\n“临宴，介绍一下，这是你嫂嫂。”\n沈临宴默了半晌，平静的开口：“顾子寻，你可知拐带他人未婚妻，依律该当何罪？”\n顾子寻往椅背上一靠，嬉皮笑脸道：“沈少卿，你可知以兄长为名行觊觎之实，依律又该当何罪？”\n半晌，沈临宴竟低头笑出声来。\n“多谢二位。”\n雷区：\n1.年龄差，女小男大", "tags": ["古风世情", "古代言情", "古色古香", "古言权谋"], "borderColor": "#3498db", "backgroundColor": "#3498db22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "漠北狂沙，暴君嗜宠和亲妻", "fullTitle": "漠北狂沙，暴君嗜宠和亲妻", "link": "https://fanqienovel.com/page/7616307970615299134", "data": [1.99, 1.99, 2.12], "trend": 0.13, "latest": 2.1, "wordNumber": 171945, "desc": "【大漠部落的王X不受宠的中原公主】\n【架空！架空！架空，作者脑洞的产物~切勿对应真实历史哦(´▽｀) 】\n大晟王朝七公主萧雪柔，被当作弃子远嫁漠北。\n传闻那位统帅赫连野暴戾嗜血，最恨和亲公主。\n初见时，他冷笑：“又一个送死的。”\n可她偏不服软——\n褪下华服，执剑策马，救他于乱军之中；\n卸下钗环，素手染血，与他共守边关烽火。\n当朝廷阴谋浮出，她横刀立马：“赫连野，你敢不敢与我联手，掀了这天下？”\n——驯狼，是要赌命的。", "tags": ["古风世情", "古代言情", "宠妻", "公主", "医术", "古言权谋"], "borderColor": "#e67e22", "backgroundColor": "#e67e2222", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "大明：从亡国公主到传奇女帝", "fullTitle": "大明：从亡国公主到传奇女帝", "link": "https://fanqienovel.com/page/7635671030693907518", "data": [1.54, 1.54, 1.66], "trend": 0.12, "latest": 1.7, "wordNumber": 294419, "desc": "【穿越+无系统+无CP+事业心+争霸权谋+日常+最后登基称帝+以上介意慎入】\n申甲之变前夜，崇祯提剑欲杀女，她反手五步套路，改变了崇祯自挂东南枝的结局——现代档案馆员朱梅绰穿成坤兴公主朱媺娖，开局就是亡国夜。\n满城烽火，她拽着崩溃的皇帝南逃，一路收锦衣卫、练新军、掌朝堂。江南士绅笑她牝鸡司晨，她反手抄了卖国盐商全家，军费瞬间到账。清军铁骑南下？她亲提大军正面硬刚，砍下多尔衮弟弟的人头传首九边。收复北京那天，满朝文武跪请登基：大明开国以来第一位女帝，就此诞生。\n后人翻开史书，只见蒸汽机的浓烟与战舰的旗帜遮蔽了全球航线——万国来朝，皆跪称“陛下”。", "tags": ["古风世情", "古代言情", "公主", "女强", "穿越"], "borderColor": "#27ae60", "backgroundColor": "#27ae6022", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "糟糕！三公子外室跑路又失败了", "fullTitle": "糟糕！三公子外室跑路又失败了", "link": "https://fanqienovel.com/page/7646191573998242841", "data": [2.09, 2.13, 2.2], "trend": 0.11, "latest": 2.2, "wordNumber": 197250, "desc": "【古言＋强取豪夺＋双洁HE＋打造新世界】\n洛飞鸿现代世界病死后，投生到一个叫乾宁的古国。\n原本单身小日子过得顺风顺水，谁知突然出现一个侯府三公子，说要纳她为妾。\n她拒绝后对方威逼利诱，为避免连累对她有恩的县令夫妇，洛飞鸿只得暂时屈从。\n但为将来能够顺利脱身，不想与他关系绑定，她只肯同意做他的外室。\n可没相处多久，洛飞鸿就受不了这个癫公，终于设计一番，逃到远离他的陌生地方，开始新生活。\n谁知刚逃走三个月，她就被谢泽找到抓了回去，用尽一切办法，叫她成为了他的妻子。\n谢泽有钱有颜，又肯为她花心思，行事上变了不少，洛飞鸿见大环境不好，终于妥协。\n后来谢泽父亲战场立功封王，可谁也没料到封地竟是岭南。\n其他人：怎么办，现在那里可是一无所有的流放之地！\n洛飞鸿：怎么办，将来这里可是物产丰富的发达地区！\n如今他们有人、有财、有人才，洛飞鸿就下定决心，要让岭南甚至天下所有人，都能过上吃饱饭的日子。", "tags": ["古风世情", "古代言情", "穿越", "今穿古", "HE", "古言权谋"], "borderColor": "#8e44ad", "backgroundColor": "#8e44ad22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "父皇别凶，儿臣知错了", "fullTitle": "父皇别凶，儿臣知错了", "link": "https://fanqienovel.com/page/7652610574102055961", "data": [1.66, 1.68, 1.68], "trend": 0.03, "latest": 1.7, "wordNumber": 185931, "desc": "（刚开评分较低～后续会慢慢高起来，放心食用）\n【父子亲情+古风权谋+储君养成+虐身虐心火葬场】\n他饮下母后给的毒酒，当大齐最锋利的利刃。\n他被一寸寸折断傲骨，成帝国最忠诚的孤臣。\n他以为，只要隐忍听话，总能换得父皇一丝垂怜偏爱。\n可一步步退让，只换来不断的猜忌与惩罚。\n满腔赤诚，落得被囚禁折磨，狠心抛弃的结局。\n心死之后，他抛下江山责任，决意归隐江湖。\n可昔日冷漠绝情的父皇却千里追来，在他面前崩溃落泪。\n“夜儿，跟父皇回家！”\n【先虐儿子后虐爹，追子火葬场~】", "tags": ["古风世情", "古代言情", "虐文", "强强", "虐恋情深", "将军", "古言权谋"], "borderColor": "#f1c40f", "backgroundColor": "#f1c40f22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"label": "病骨重生十年后，故人子弟皆识我", "fullTitle": "病骨重生十年后，故人子弟皆识我", "link": "https://fanqienovel.com/page/7648362217137523736", "data": [1.87, 1.87, 1.88], "trend": 0.01, "latest": 1.9, "wordNumber": 130432, "desc": "【白月光重生后】【发现故人皆老去，稚子已长成】【实则全员意难平】\n\n沈檀汐活了过来，成了乱葬岗里爬出来的年幼孤女。\n\n无名无姓，面黄肌瘦，还有一身自己都控制不住的蛮力。\n\n彼时，十年大梦一觉醒，帝京早已换了人间。\n\n新帝登基，改元换岁，朝堂洗牌，旧族兴衰。\n\n当年的世家儿女，皆已各个身居高位。\n\n昔年那些小娃娃，如今已成帝京新贵。\n\n唯有沈檀汐的记忆还停在死前那一刻。\n\n她生前位尊权贵，受尽恩宠，可惜生来病弱，二十七岁香消玉殒。\n\n再睁眼，是十年后的如今。\n\n那个早已埋入皇陵、只余坊间传说的病弱县主，以这样狼狈又鲜活的姿态，重临人间。\n\n相传帝京之中，有人为她至今未婚，独守度日。\n\n她前世的夫君，也未有续弦，坊间人人称他一句痴情人。\n\n【外柔内韧·沉静寡言女主 VS 男主随剧情出现中……】", "tags": ["古风世情", "古代言情", "重生", "情有独钟", "忠犬", "古言权谋"], "borderColor": "#16a085", "backgroundColor": "#16a08522", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}]}, "recTracks": [{"cat": "豪门总裁", "score": 9, "reasons": ["3日增长+0.3%", "竞争系数较低(6.1)", "体量大(448.4万)", "10万+书多(21本)"], "total19": 448.4, "growth": 0.3, "coeff": 6.1, "count10w": 21, "mean": 14.9}, {"cat": "玄幻言情", "score": 7, "reasons": ["3日增长+17.6%", "竞争系数低(3.0)", "体量中(142.8万)"], "total19": 142.8, "growth": 17.6, "coeff": 3.0, "count10w": 1, "mean": 4.8}, {"cat": "现言脑洞", "score": 7, "reasons": ["3日增长+4.8%", "竞争系数中(9.4)", "体量大(322.5万)", "10万+书(9本)"], "total19": 322.5, "growth": 4.8, "coeff": 9.4, "count10w": 9, "mean": 10.8}, {"cat": "青春甜宠", "score": 7, "reasons": ["基本稳定(-0.7%)", "竞争系数较低(6.9)", "体量大(382.4万)", "10万+书多(12本)"], "total19": 382.4, "growth": -0.7, "coeff": 6.9, "count10w": 12, "mean": 12.7}, {"cat": "古风世情", "score": 6, "reasons": ["3日增长+1.2%", "竞争系数低(3.5)"], "total19": 65.5, "growth": 1.2, "coeff": 3.5, "count10w": 0, "mean": 2.2}, {"cat": "年代", "score": 6, "reasons": ["基本稳定(-1.7%)", "竞争系数低(3.5)", "体量中(191.9万)", "10万+书(4本)"], "total19": 191.9, "growth": -1.7, "coeff": 3.5, "count10w": 4, "mean": 6.4}, {"cat": "快穿", "score": 6, "reasons": ["竞争系数低(3.4)", "体量大(251.6万)", "10万+书(8本)"], "total19": 251.6, "growth": -8.1, "coeff": 3.4, "count10w": 8, "mean": 8.4}, {"cat": "悬疑脑洞", "score": 6, "reasons": ["3日增长+1.0%", "竞争系数中(7.5)", "体量中(159.4万)", "10万+书(4本)"], "total19": 159.4, "growth": 1.0, "coeff": 7.5, "count10w": 4, "mean": 5.3}, {"cat": "科幻末世", "score": 6, "reasons": ["3日增长+2.6%", "竞争系数较低(5.5)", "体量中(149.5万)"], "total19": 149.5, "growth": 2.6, "coeff": 5.5, "count10w": 2, "mean": 5.0}, {"cat": "女频衍生", "score": 5, "reasons": ["基本稳定(-2.8%)", "竞争系数低(2.6)", "体量中(127.3万)"], "total19": 127.3, "growth": -2.8, "coeff": 2.6, "count10w": 0, "mean": 4.2}, {"cat": "职场婚恋", "score": 5, "reasons": ["基本稳定(-1.4%)", "竞争系数低(2.8)", "体量中(103.9万)"], "total19": 103.9, "growth": -1.4, "coeff": 2.8, "count10w": 0, "mean": 3.5}, {"cat": "女频悬疑", "score": 4, "reasons": ["基本稳定(-1.6%)", "竞争系数低(4.0)"], "total19": 84.3, "growth": -1.6, "coeff": 4.0, "count10w": 0, "mean": 2.8}, {"cat": "民国言情", "score": 4, "reasons": ["3日增长+1.1%", "竞争系数中(8.7)"], "total19": 27.1, "growth": 1.1, "coeff": 8.7, "count10w": 0, "mean": 0.9}, {"cat": "游戏体育", "score": 4, "reasons": ["基本稳定(-1.5%)", "竞争系数低(2.8)"], "total19": 35.7, "growth": -1.5, "coeff": 2.8, "count10w": 0, "mean": 1.2}, {"cat": "种田", "score": 3, "reasons": ["竞争系数低(3.1)"], "total19": 52.9, "growth": -49.9, "coeff": 3.1, "count10w": 1, "mean": 5.3}, {"cat": "古言脑洞", "score": 2, "reasons": ["体量中(187.1万)", "10万+书(4本)"], "total19": 187.1, "growth": -3.9, "coeff": 15.2, "count10w": 4, "mean": 6.2}, {"cat": "宫斗宅斗", "score": 2, "reasons": ["体量大(234.6万)"], "total19": 234.6, "growth": -8.5, "coeff": 11.0, "count10w": 3, "mean": 7.8}, {"cat": "星光璀璨", "score": 1, "reasons": ["体量中(144.9万)"], "total19": 144.9, "growth": -4.6, "coeff": 14.1, "count10w": 2, "mean": 4.8}], "metrics": {"古言脑洞": {"total19": 187.1, "growth": -3.9, "coeff": 15.2, "count10w": 4, "mean": 6.2}, "古风世情": {"total19": 65.5, "growth": 1.2, "coeff": 3.5, "count10w": 0, "mean": 2.2}, "女频悬疑": {"total19": 84.3, "growth": -1.6, "coeff": 4.0, "count10w": 0, "mean": 2.8}, "女频衍生": {"total19": 127.3, "growth": -2.8, "coeff": 2.6, "count10w": 0, "mean": 4.2}, "宫斗宅斗": {"total19": 234.6, "growth": -8.5, "coeff": 11.0, "count10w": 3, "mean": 7.8}, "年代": {"total19": 191.9, "growth": -1.7, "coeff": 3.5, "count10w": 4, "mean": 6.4}, "快穿": {"total19": 251.6, "growth": -8.1, "coeff": 3.4, "count10w": 8, "mean": 8.4}, "悬疑脑洞": {"total19": 159.4, "growth": 1.0, "coeff": 7.5, "count10w": 4, "mean": 5.3}, "星光璀璨": {"total19": 144.9, "growth": -4.6, "coeff": 14.1, "count10w": 2, "mean": 4.8}, "民国言情": {"total19": 27.1, "growth": 1.1, "coeff": 8.7, "count10w": 0, "mean": 0.9}, "游戏体育": {"total19": 35.7, "growth": -1.5, "coeff": 2.8, "count10w": 0, "mean": 1.2}, "玄幻言情": {"total19": 142.8, "growth": 17.6, "coeff": 3.0, "count10w": 1, "mean": 4.8}, "现言脑洞": {"total19": 322.5, "growth": 4.8, "coeff": 9.4, "count10w": 9, "mean": 10.8}, "种田": {"total19": 52.9, "growth": -49.9, "coeff": 3.1, "count10w": 1, "mean": 5.3}, "科幻末世": {"total19": 149.5, "growth": 2.6, "coeff": 5.5, "count10w": 2, "mean": 5.0}, "职场婚恋": {"total19": 103.9, "growth": -1.4, "coeff": 2.8, "count10w": 0, "mean": 3.5}, "豪门总裁": {"total19": 448.4, "growth": 0.3, "coeff": 6.1, "count10w": 21, "mean": 14.9}, "青春甜宠": {"total19": 382.4, "growth": -0.7, "coeff": 6.9, "count10w": 12, "mean": 12.7}}};
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = '#2a3040';
+Chart.defaults.font.family = "-apple-system,'PingFang SC','Microsoft YaHei',sans-serif";
+const gridColor = 'rgba(42,48,64,0.8)';
+
+// ① 推荐卡片
+(function() {
+  const container = document.getElementById('rec-container');
+  const groups = {};
+  D.recTracks.forEach(t => { if (!groups[t.score]) groups[t.score] = []; groups[t.score].push(t); });
+  const scoreLabels = { 8:'★★★ 强烈推荐', 9:'★★★ 强烈推荐', 10:'★★★ 强烈推荐', 11:'★★★ 强烈推荐', 7:'★★☆ 推荐', 6:'★★☆ 建议关注', 5:'★☆☆ 参考', 4:'☆☆☆ 谨慎', 3:'☆☆☆ 谨慎', 2:'不建议', 1:'不建议' };
+  Object.keys(groups).sort((a,b)=>b-a).forEach(score => {
+    const s = parseInt(score);
+    const groupEl = document.createElement('div');
+    groupEl.className = 'score-group';
+    const labelEl = document.createElement('div');
+    labelEl.className = 'score-group-label';
+    labelEl.textContent = `${scoreLabels[s] || ''} — ${s}分`;
+    groupEl.appendChild(labelEl);
+    const grid = document.createElement('div');
+    grid.className = 'rec-grid';
+    groups[score].forEach(t => {
+      const tierClass = s>=8?'s8':s===7?'s7':s===6?'s6':s===5?'s5':'slo';
+      const scoreClass = s>=8?'high':s>=6?'med':'low';
+      const gHtml = t.growth>=0?`<span class="pill pill-up">+${t.growth}%</span>`:`<span class="pill pill-dn">${t.growth}%</span>`;
+      const reasonsHtml = t.reasons.map(r=>{
+        let cls='tag-blue';
+        if(r.includes('增长'))cls='tag-green';
+        else if(r.includes('稳定'))cls='tag-yellow';
+        else if(r.includes('系数低')||r.includes('系数较低'))cls='tag-green';
+        else if(r.includes('系数中'))cls='tag-yellow';
+        else if(r.includes('10万'))cls='tag-purple';
+        return `<span class="${cls}">${r}</span>`;
+      }).join('');
+      grid.innerHTML += `<div class="rec-card ${tierClass}">
+        <div class="rec-cat">${t.cat}</div>
+        <div class="rec-score-badge ${scoreClass}">综合评分 ${s}分</div>
+        <div class="rec-stats">
+          <div class="rec-stat"><div class="val">${t.total19}万</div><div class="lbl">总在读</div></div>
+          <div class="rec-stat"><div class="val">${gHtml}</div><div class="lbl">3日增幅</div></div>
+          <div class="rec-stat"><div class="val" style="color:${t.coeff<5?'#22c55e':t.coeff<7?'#3b82f6':t.coeff<10?'#f59e0b':'#ef4444'}">${t.coeff}</div><div class="lbl">竞争系数</div></div>
+          <div class="rec-stat"><div class="val">${t.count10w>0?t.count10w+'本':'—'}</div><div class="lbl">10万+书</div></div>
+        </div>
+        <div class="rec-reasons">${reasonsHtml}</div>
+      </div>`;
+    });
+    groupEl.appendChild(grid);
+    container.appendChild(groupEl);
+  });
+})();
+
+// ② 上升题材折线图
+(function() {
+  const ctx = document.getElementById('overviewChart').getContext('2d');
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: { labels: D.days, datasets: D.overviewDatasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: { backgroundColor: '#1e2433', borderColor: '#2a3040', borderWidth: 1,
+          callbacks: { label: c => ` ${c.dataset.label}: ${c.parsed.y}万` } }
+      },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: '#64748b' } },
+        y: { grid: { color: gridColor }, ticks: { color: '#64748b', callback: v => v+'万' } }
+      }
+    }
+  });
+  const legEl = document.getElementById('overview-legend');
+  D.overviewDatasets.forEach((ds, i) => {
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.innerHTML = `<span class="legend-dot" style="background:${ds.borderColor}"></span>${ds.label}`;
+    item.addEventListener('click', () => {
+      const meta = chart.getDatasetMeta(i);
+      meta.hidden = !meta.hidden;
+      item.classList.toggle('hidden', meta.hidden);
+      chart.update();
+    });
+    legEl.appendChild(item);
+  });
+})();
+
+// ③ 增幅柱状图
+(function() {
+  new Chart(document.getElementById('growthChart').getContext('2d'), {
+    type: 'bar',
+    data: { labels: D.growthCats, datasets: [{ data: D.growthValues,
+      backgroundColor: D.growthColors.map(c=>c+'cc'), borderColor: D.growthColors,
+      borderWidth: 1, borderRadius: 3 }] },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false },
+        tooltip: { backgroundColor: '#1e2433', borderColor: '#2a3040', borderWidth: 1,
+          callbacks: { label: c => ` ${c.parsed.x>0?'+':''}${c.parsed.x}%` } } },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: '#64748b', callback: v => v+'%' } },
+        y: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 12 } } }
+      }
+    }
+  });
+})();
+
+// ③ 气泡图
+(function() {
+  const colors = ['#f39c12','#c0392b','#95a5a6','#d35400','#e67e22','#27ae60','#3498db',
+    '#1abc9c','#f1c40f','#7f8c8d','#1e8449','#8e44ad','#9b59b6','#2ecc71',
+    '#16a085','#2980b9','#e74c3c','#e91e8c'];
+  new Chart(document.getElementById('bubbleChart').getContext('2d'), {
+    type: 'bubble',
+    data: { datasets: D.bubbleData.map((b,i) => ({
+      label: b.label, data: [{x:b.x,y:b.y,r:b.r}],
+      backgroundColor: colors[i%colors.length]+'88', borderColor: colors[i%colors.length], borderWidth: 1.5
+    })) },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false },
+        tooltip: { backgroundColor: '#1e2433', borderColor: '#2a3040', borderWidth: 1,
+          callbacks: { title: c => c[0].dataset.label,
+            label: c => { const b=D.bubbleData.find(b=>b.label===c.dataset.label);
+              return [` 总在读：${c.parsed.x}万`,` 竞争系数：${c.parsed.y}`,` 10万+：${b?b.count10w:'-'}本`]; } } } },
+      scales: {
+        x: { grid:{color:gridColor}, ticks:{color:'#64748b',callback:v=>v+'万'}, title:{display:true,text:'总在读（万）',color:'#64748b'} },
+        y: { grid:{color:gridColor}, ticks:{color:'#64748b'}, title:{display:true,text:'竞争系数（越低越好）',color:'#64748b'} }
+      }
+    },
+    plugins: [{ id:'bubbleLabels', afterDatasetsDraw(chart) {
+      const ctx2=chart.ctx;
+      chart.data.datasets.forEach((ds,i)=>{ chart.getDatasetMeta(i).data.forEach(el=>{
+        const {x,y}=el.getProps(['x','y']);
+        ctx2.save(); ctx2.fillStyle='#e2e8f0'; ctx2.font='10px PingFang SC,sans-serif';
+        ctx2.textAlign='center'; ctx2.fillText(ds.label,x,y+3); ctx2.restore();
+      }); });
+    } }]
+  });
+})();
+
+// ④ 汇总表
+(function() {
+  const sorted = Object.keys(D.metrics).sort((a,b)=>D.metrics[b].total19-D.metrics[a].total19);
+  const table = document.getElementById('overviewTable');
+  table.innerHTML = `<thead><tr><th>分类</th><th>总在读（万）</th><th>3日增幅</th><th>在读均值（万）</th><th>竞争系数</th><th>10万+书</th></tr></thead>
+  <tbody>${sorted.map((cat,i)=>{
+    const m=D.metrics[cat];
+    const gClass=m.growth>=0?'pill-up':'pill-dn';
+    const gStr=(m.growth>=0?'+':'')+m.growth+'%';
+    const cc=m.coeff<=5?'#22c55e':m.coeff<=10?'#f59e0b':'#ef4444';
+    return `<tr><td class="cat-name">${i+1}. ${cat}</td><td>${m.total19}</td>
+      <td><span class="pill ${gClass}">${gStr}</span></td><td>${m.mean}</td>
+      <td style="color:${cc};font-weight:600">${m.coeff}</td>
+      <td>${m.count10w>0?m.count10w+'本':'<span style=\"color:var(--text3)\">—</span>'}</td></tr>`;
+  }).join('')}</tbody>`;
+})();
+
+// ⑤ 书目折线图 + 趋势表 + 热门标签
+(function() {
+  const cats = Object.keys(D.bookChartData);
+  const tabsEl = document.getElementById('bookTabs');
+  const contsEl = document.getElementById('bookTabContents');
+  cats.forEach((cat, ci) => {
+    const tab = document.createElement('div');
+    tab.className = 'tab'+(ci===0?' active':'');
+    tab.textContent = cat; tab.dataset.cat = cat;
+    tabsEl.appendChild(tab);
+    const allBooks = D.bookChartData[cat];
+    const content = document.createElement('div');
+    content.className = 'tab-content'+(ci===0?' active':'');
+    content.id = 'tab-'+cat;
+    content.innerHTML = `
+      <div class="book-layout">
+        <div class="card">
+          <div style="font-size:13px;color:var(--text2);margin-bottom:12px">${cat} · 在读人数折线图（万人）</div>
+          <div class="chart-wrap" style="height:520px"><canvas id="bookChart-${ci}"></canvas></div>
+        </div>
+        <div class="card" style="overflow-x:auto">
+          <div style="font-size:13px;color:var(--text2);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+            <span>全部书目趋势（${D.days[0]}→${D.days[D.days.length-1]}，按净增排序）</span>
+            <span style="font-size:12px;color:#ef4444;font-weight:600">累计净增 +${allBooks.reduce((s,b)=>+(s+b.trend).toFixed(2),0)}万</span>
+          </div>
+          <table class="book-table">
+            <thead><tr><th></th><th>#</th><th>书名</th><th>${D.days[0]}</th><th>${D.days[1]}</th><th>${D.days[2]}</th><th>字数</th><th>净增</th></tr></thead>
+            <tbody id="bookTbody-${ci}"></tbody>
+          </table>
+        </div>
+      </div>`;
+    contsEl.appendChild(content);
+    const tags = (D.catTags||{})[cat]||[];
+    if (tags.length) {
+      const maxCount = tags[0].count;
+      const barColors = {'豪门总裁':'#e74c3c','青春甜宠':'#e91e8c','古言脑洞':'#f39c12','悬疑脑洞':'#1abc9c','现言脑洞':'#9b59b6'};
+      const barColor = barColors[cat]||'#3498db';
+      const totalBooks = allBooks.length;
+      const tagSec = document.createElement('div');
+      tagSec.className = 'tag-section card';
+      tagSec.style.marginTop = '16px';
+      tagSec.innerHTML = `
+        <div class="tag-section-title">📌 热门标签（基于 ${totalBooks} 本上榜书，可作为开书参考）</div>
+        <div class="tag-bar-list">
+          ${tags.slice(0,10).map(t=>`
+            <div class="tag-bar-row">
+              <div class="tag-bar-name">${t.tag}</div>
+              <div class="tag-bar-track"><div class="tag-bar-fill" style="width:${Math.round(t.count/maxCount*100)}%;background:${barColor}99"></div></div>
+              <div class="tag-bar-count">${t.count}本</div>
+            </div>`).join('')}
+        </div>`;
+      content.appendChild(tagSec);
+    }
+    // 填充书目表格（带展开按钮）
+    (function() {
+      const tbody = document.getElementById('bookTbody-'+ci);
+      if (!tbody) return;
+      const sorted = [...allBooks].sort((a,b)=>b.trend-a.trend);
+      sorted.forEach((b, i) => {
+        const tStr = b.trend>0?`+${b.trend}`:`${b.trend}`;
+        const tCls = b.trend>=1?'trend-up':b.trend>0?'trend-mid':b.trend<0?'trend-dn':'';
+        const wn = b.wordNumber||0;
+        const wStr = wn>0?(Math.round(wn/1000)/10).toFixed(1)+'万':'—';
+        const rid = `dr-${ci}-${i}`;
+        const btnId = `btn-${ci}-${i}`;
+        const cols = b.data.length>=3 ? b.data : [...b.data, ...Array(3-b.data.length).fill(0)];
+        // 主行
+        const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
+        tr.innerHTML = `
+          <td><button class="expand-btn" id="${btnId}">+</button></td>
+          <td style="color:var(--text3)">${i+1}</td>
+          <td><a href="${b.link}" target="_blank" onclick="event.stopPropagation()">${b.fullTitle}</a></td>
+          ${cols.map(v=>`<td>${v}万</td>`).join('')}
+          <td style="color:var(--text2)">${wStr}</td>
+          <td class="${tCls}">${tStr}万</td>`;
+        tbody.appendChild(tr);
+        // 详情行
+        const dr = document.createElement('tr');
+        dr.className = 'book-detail-row';
+        dr.id = rid;
+        const tagsHtml = (b.tags||[]).map(t=>`<span class="book-detail-tag">${t}</span>`).join('');
+        dr.innerHTML = `<td colspan="8">
+          <div class="book-detail-inner">
+            <div><span style="color:var(--text3)">书名：</span><span style="color:var(--text);font-weight:600">${b.fullTitle}</span></div>
+            <div style="margin-top:4px"><span style="color:var(--text3)">作品简介：</span>${b.desc||'暂无简介'}</div>
+            ${tagsHtml?`<div class="book-detail-tags">${tagsHtml}</div>`:''}
+          </div></td>`;
+        tbody.appendChild(dr);
+        // 展开/收起：整行点击 or 按钮点击
+        const toggle = () => {
+          const row = document.getElementById(rid);
+          const open = row.classList.toggle('open');
+          const btn = document.getElementById(btnId);
+          if (btn) btn.textContent = open ? '−' : '+';
+        };
+        tr.addEventListener('click', toggle);
+      });
+    })();
+    setTimeout(() => {
+      const cvs = document.getElementById('bookChart-'+ci);
+      if (!cvs) return;
+      new Chart(cvs.getContext('2d'), {
+        type: 'line',
+        data: { labels: D.days, datasets: allBooks },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { display: false },
+            tooltip: { backgroundColor: '#1e2433', borderColor: '#2a3040', borderWidth: 1,
+              callbacks: { label: c => ` ${c.dataset.fullTitle||c.dataset.label}: ${c.parsed.y}万` } } },
+          scales: {
+            x: { grid:{color:gridColor}, ticks:{color:'#64748b'} },
+            y: { grid:{color:gridColor}, ticks:{color:'#64748b',callback:v=>v+'万'} }
+          }
+        }
+      });
+    }, 60*(ci+1));
+  });
+  tabsEl.addEventListener('click', e => {
+    const tab = e.target.closest('.tab');
+    if (!tab) return;
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-'+tab.dataset.cat).classList.add('active');
+  });
+})();
+</script>
+</body>
+</html>
