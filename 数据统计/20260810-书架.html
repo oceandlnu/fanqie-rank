@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>番茄书架 · 8月10日</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117; --bg2: #171b26; --bg3: #1e2433; --border: #2a3040;
+    --text: #e2e8f0; --text2: #94a3b8; --text3: #64748b;
+    --accent: #f59e0b; --accent-dim: rgba(245,158,11,.12);
+    --green: #22c55e; --red: #ef4444; --blue: #3b82f6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system,'PingFang SC','Microsoft YaHei',sans-serif; font-size: 14px; line-height: 1.6; }
+
+  .header {
+    background: linear-gradient(160deg,#1c2138 0%,#0f1117 60%);
+    border-bottom: 1px solid var(--border);
+    padding: 32px 40px 28px;
+  }
+  .header-eyebrow { font-size: 11px; letter-spacing: .12em; color: var(--text3); text-transform: uppercase; margin-bottom: 8px; }
+  .header h1 { font-size: 24px; font-weight: 800; letter-spacing: -.3px; line-height: 1.2; margin-bottom: 8px; }
+  .header h1 span { color: var(--accent); }
+  .header-sub { color: var(--text2); font-size: 13px; display: flex; gap: 16px; flex-wrap: wrap; }
+  .header-sub .dot { color: var(--border); }
+
+  .container { max-width: 1320px; margin: 0 auto; padding: 32px 40px 80px; }
+  .section { margin-bottom: 52px; }
+  .section-header {
+    display: flex; align-items: baseline; gap: 10px;
+    margin-bottom: 18px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num { font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: .08em; flex-shrink: 0; }
+  .section-title { font-size: 16px; font-weight: 700; }
+  .badge { background: var(--accent); color: #000; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 3px; letter-spacing: .04em; flex-shrink: 0; }
+
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+  .chart-wrap { position: relative; }
+  .note { background: var(--accent-dim); border: 1px solid rgba(245,158,11,.2); border-radius: 8px; padding: 12px 16px; color: var(--text2); font-size: 12px; line-height: 1.7; margin-bottom: 20px; }
+  .note strong { color: var(--accent); }
+
+  .book-layout { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px; align-items: stretch; }
+  @media (max-width: 1100px) { .book-layout { grid-template-columns: 1fr; } }
+
+  .legend-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .legend-item {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 12px; color: var(--text2);
+    cursor: pointer;
+    padding: 3px 8px; border-radius: 4px;
+    border: 1px solid transparent;
+    transition: border-color .12s, opacity .12s, background .12s;
+    user-select: none;
+  }
+  .legend-item:hover { border-color: var(--border); background: rgba(255,255,255,.03); }
+  .legend-item.dimmed { opacity: .22; }
+  .legend-item.solo { border-color: var(--accent); background: var(--accent-dim); color: var(--text); opacity: 1; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .legend-hint { font-size: 11px; color: var(--text3); align-self: center; margin-left: 4px; flex-shrink: 0; }
+
+  .book-table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+  .book-table th { text-align: left; padding: 7px 10px; color: var(--text3); font-weight: 500; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg2); z-index: 1; }
+  .book-table td { padding: 7px 10px; border-bottom: 1px solid rgba(42,48,64,.4); }
+  .book-table .book-name-cell { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 0; }
+  .book-detail-row td { white-space: normal; overflow: visible; word-break: break-word; }
+  .book-table tr:hover td { background: var(--bg3); }
+  .book-table a { color: var(--blue); text-decoration: none; }
+  .book-table a:hover { text-decoration: underline; }
+  .trend-up { color: var(--green); font-weight: 600; }
+  .trend-dn { color: var(--red); }
+  .expand-btn { background: none; border: 1px solid var(--border); color: var(--text3); border-radius: 4px; padding: 1px 7px; font-size: 11px; cursor: pointer; transition: all .15s; }
+  .expand-btn:hover { border-color: var(--text2); color: var(--text); }
+  .book-detail-row { display: none; }
+  .book-detail-row.open { display: table-row; }
+  .book-detail-row td { padding: 10px 14px 14px; background: var(--bg3); border-bottom: 1px solid rgba(42,48,64,.4); }
+  .book-detail-inner { font-size: 12px; color: var(--text2); line-height: 1.7; }
+  .book-detail-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .book-detail-tag { background: rgba(59,130,246,.12); color: #93c5fd; border-radius: 3px; padding: 1px 7px; font-size: 11px; }
+  .row-highlight td { background: rgba(245,158,11,.07) !important; }
+  .row-highlight:hover td { background: rgba(245,158,11,.13) !important; }
+
+  .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; vertical-align: middle; flex-shrink: 0; }
+  .status-dot.serial { background: #22c55e; animation: breathe 2s ease-in-out infinite; }
+  .status-dot.finished { background: #475569; }
+  @keyframes breathe {
+    0%, 100% { opacity: 1; box-shadow: 0 0 4px 2px rgba(34,197,94,.5); }
+    50%       { opacity: .55; box-shadow: 0 0 8px 3px rgba(34,197,94,.18); }
+  }
+  .inread-high { color: var(--accent); font-weight: 700; }
+
+  .tag-section { margin-top: 0; }
+  .tag-section-title { font-size: 13px; color: var(--text2); font-weight: 600; margin-bottom: 12px; }
+  .tag-bar-list { display: flex; flex-direction: column; gap: 7px; }
+  .tag-bar-row { display: flex; align-items: center; gap: 10px; }
+  .tag-bar-name { width: 80px; font-size: 12px; color: var(--text); text-align: right; flex-shrink: 0; }
+  .tag-bar-track { flex: 1; background: var(--bg3); border-radius: 3px; height: 16px; overflow: hidden; }
+  .tag-bar-fill { height: 100%; border-radius: 3px; }
+  .tag-bar-count { font-size: 11px; color: var(--text3); flex-shrink: 0; width: 36px; }
+
+  @media (max-width: 600px) {
+    .header { padding: 20px; }
+    .container { padding: 20px 16px 60px; }
+  }
+
+  .period-float {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    background: rgba(23,27,38,.94);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 4px 28px rgba(0,0,0,.45);
+  }
+  .period-group-label {
+    font-size: 10px; font-weight: 700; color: var(--text3);
+    letter-spacing: .08em; text-transform: uppercase;
+    padding: 4px 10px 2px;
+  }
+  .period-divider { height: 1px; background: var(--border); margin: 4px 6px; }
+  .period-btn {
+    display: flex; align-items: center; gap: 7px;
+    padding: 8px 14px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 13px; font-weight: 600;
+    color: var(--text3);
+    background: transparent;
+    border: 1px solid transparent;
+    transition: color .15s, background .15s, border-color .15s, box-shadow .15s;
+    white-space: nowrap;
+    letter-spacing: .02em;
+    text-decoration: none;
+  }
+  .period-btn:hover { color: var(--text2); border-color: var(--border); background: rgba(255,255,255,.04); }
+  .period-btn.active {
+    background: var(--accent-dim);
+    color: var(--accent);
+    border-color: rgba(245,158,11,.35);
+    box-shadow: 0 0 10px rgba(245,158,11,.18);
+  }
+  .period-btn-num { font-size: 10px; font-weight: 700; color: inherit; opacity: .7; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+
+<div class="period-float">
+  <div class="period-group-label">榜单</div>
+  <a class="period-btn" href="index.html"><span class="period-btn-num">7日</span>趋势分析</a>
+  <div class="period-divider"></div>
+  <div class="period-group-label">书架</div>
+  <a class="period-btn active" href="bookshelf.html"><span class="period-btn-num">7日</span>书架</a>
+</div>
+
+<div class="header">
+  <div class="header-eyebrow">番茄小说 · 书架</div>
+  <h1>书架 <span>8月10日</span></h1>
+  <div class="header-sub">
+    <span id="shelf-count"></span>
+    <span class="dot">·</span>
+    <span>书架  8月3日–8月10日</span>
+  </div>
+</div>
+
+<div class="container">
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <span class="badge">书架</span>
+      <span class="section-title">书架书目 · 7日在读趋势</span>
+    </div>
+    <div class="note">共 <strong id="note-count">0</strong> 本书架书目。在读人数来自每日榜单（上榜时）+ 今日详情页补全。折线只显示有数据的天次，空缺表示当天未上任何榜单且无详情页数据。</div>
+    <div class="book-layout">
+      <div class="card">
+        <div id="shelfLegend" class="legend-row" style="margin-bottom:10px"></div>
+        <div class="chart-wrap" style="height:520px"><canvas id="shelfChart"></canvas></div>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;min-height:560px">
+        <div style="font-size:13px;color:var(--text2);margin-bottom:10px;flex-shrink:0">
+          全部书目（按净增降序）<span style="font-size:11px;color:var(--text3);margin-left:8px">★ 最新日在读&gt;10万高亮</span>
+        </div>
+        <div style="overflow-x:auto;overflow-y:auto;flex:1">
+        <table class="book-table">
+          <thead>
+            <tr>
+              <th></th><th>#</th><th>书名</th>
+              <th id="day-headers"></th>
+              <th>字数</th><th>净增</th><th>状态</th>
+            </tr>
+          </thead>
+          <tbody id="shelfTbody"></tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <span class="badge">标签</span>
+      <span class="section-title">书架热门标签</span>
+    </div>
+    <div class="card tag-section">
+      <div class="tag-section-title">📌 热门标签（基于书架全部书目，可作为开书参考）</div>
+      <div class="tag-bar-list" id="shelfTagBars"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SHELF = {"dateLabel": "8月10日", "dateRange": "书架  8月3日–8月10日", "days": ["8月3日", "8月4日", "8月5日", "8月6日", "8月7日", "8月8日", "8月10日"], "rawDays": ["20260803", "20260804", "20260805", "20260806", "20260807", "20260808", "20260810"], "datasets": [{"label": "发配边关，罪妻开荒养出战神", "fullTitle": "发配边关，罪妻开荒养出战神", "link": "https://fanqienovel.com/page/7613410424586767385", "data": [76.89, 78.07, 77.73, 79.1, 79.78, 72.51, 69.76], "trend": -7.13, "latest": 69.76, "wordNumber": 754343, "creationStatus": 1, "desc": "【边关生活+木系+御兽+宠夫+护短+开荒种田+甜宠+双强直球夫妇+对照组】\n大靖连旱两年，粮荒四起，战火燃遍辽东。\n末世后勤员苏禾穿成罪奴丫鬟，被发配给军户为妻。\n罪奴姐妹极力表现，力争抢个优秀男儿，而她只看安全感，一眼锁定全场最壮的百户萧征。\n他冷脸拒绝：“我不需要媳妇，赏我粮食就行！我养不起，也没功夫照顾。”\n她直白坦荡：“我不用你照顾。我能种地，能持家。你很强，跟你，我安全。”\n没媳妇前的萧征：女人真麻烦！\n有了媳妇后，萧征夜夜搂着苏禾：真得劲！媳妇，再来二十个馒头！\n自此，边关多了一对双强夫妇。\n他负责拿刀护她，横扫敌军；\n她负责种田产粮，兜底全家。\n极品邻居攀比？打脸！\n边关缺粮断炊？解决！\n敌军突袭包围？放野兽！\n萧征从穷军户一路封将，世人皆知：\n大将军最厉害的不是战功，是他那位能种出天下粮的媳妇。\n【饭桶将军×产粮小媳妇】\n你负责打仗护家・我负责种地养你", "tags": ["种田", "古代言情", "乡村", "穿越", "强强", "宠夫"], "borderColor": "#1abc9c", "backgroundColor": "#1abc9c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2, "spanGaps": false}, {"label": "分家，继母渣爹跪求我回家", "fullTitle": "分家，继母渣爹跪求我回家", "link": "https://fanqienovel.com/page/7620425812189121598", "data": [35.79, 36.65, 37.57, 36.64, 36.87, 32.06, 30.65], "trend": -5.14, "latest": 30.65, "wordNumber": 618966, "creationStatus": 1, "desc": "（漫剧已出）一睁眼，林仟仟成了农家炮灰女。\n亲娘刚死，继母带着她女儿进门了，从此她和三岁的弟弟住进了柴房，一天两顿稀粥，还要挨打受骂。继母说：“女孩子家，识什么字？”转头却给继妹请了先生。\n爷奶偏心小叔，大伯母尖酸刻薄，整日惦记着把她卖个好价钱。亲爹呢？站在院里搓着手，屁都不敢放一个。\n林仟仟笑了。\n牵着弟弟的手往外走。\n“分家。”\n堂屋里一片哄笑：“一个丫头片子，带着个拖油瓶，分出去等死？”\n她没回头。\n分家后，她采野菜卖野兔赚了第一桶金。\n一个月后，她的木薯淀粉风靡镇上酒楼。\n两个月后，她买下了村东头三十亩地。\n三个月后，她要翻新老宅推倒重盖\n继母急了，爷奶慌了，亲爹站在院门口来回踱步——那院门，她牵着弟弟走出去那天，就再没打算回来。\n年底，她坐着新打的牛车经过老宅门口，继母追出来喊她的名字。\n她低头给弟弟擦了擦嘴角的油光，头都没抬：\n“娘？我娘早死了。”", "tags": ["种田", "古代言情", "乡村", "穿越", "虐渣", "发家致富"], "borderColor": "#f1c40f", "backgroundColor": "#f1c40f22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2, "spanGaps": false}, {"label": "崽崽荷包通两界，荒村变成桃花源", "fullTitle": "崽崽荷包通两界，荒村变成桃花源", "link": "https://fanqienovel.com/page/7595102903841344537", "data": [18.38, 19.23, 20.41, 23.16, 25.65, 28.2, 28.92], "trend": 10.54, "latest": 28.92, "wordNumber": 905657, "creationStatus": 1, "desc": "【种田+古今穿越+萌宝+温馨经营（日常向，无cp)】\n\n五岁芽芽的破荷包能通现代。\n\n从捡垃圾堆里半个卤蛋开始，到发现野菜在现代价比黄金。\n\n从捡拾到交换，从求生到经营。\n\n她背着小背篓穿梭两界，从一颗卤蛋到满仓粮食，从濒临绝境到炊烟袅袅。\n\n山还是那座山，日子却一天天有了滋味。", "tags": ["种田", "古代言情", "乡村", "萌宝", "穿越", "无CP"], "borderColor": "#9b59b6", "backgroundColor": "#9b59b622", "tension": 0.3, "pointRadius": 5, "borderWidth": 2, "spanGaps": false}, {"label": "旺家小福女", "fullTitle": "旺家小福女", "link": "https://fanqienovel.com/page/7617458520832609305", "data": [12.75, 12.8, 13.49, 14.62, 16.83, 23.95, 23.5], "trend": 10.75, "latest": 23.5, "wordNumber": 918778, "creationStatus": 1, "desc": "穿越？重生？都没有。林小满只是一个古代农家普通小丫头。\n\n被后娘推进冰窟窿那天，她以为自己死定了。是隔壁的张婶子把她捞起来，带回了家。“从今往后，你就是我李家的闺女！”\n\n李家穷的住破屋烂瓦，吃野菜糊糊粥，没想到自打她来了，李家就跟开了光似的——栗子捡不完、赏银从天降、老宅挖出存钱罐、烧炭赶上官府收购……日子越过越红火，三个哥哥也进了学堂。\n\n李家人都说她是福星，可林小满知道：哪有什么福星，不过是老天爷可怜她，给了她一双能看见明天的眼睛。", "tags": ["种田", "古代言情", "乡村", "幻想言情", "发家致富", "古色古香"], "borderColor": "#95a5a6", "backgroundColor": "#95a5a622", "tension": 0.3, "pointRadius": 5, "borderWidth": 2, "spanGaps": false}, {"label": "冤种世子要我命？几巴掌就服了", "fullTitle": "冤种世子要我命？几巴掌就服了", "link": "https://fanqienovel.com/page/7619647324658093080", "data": [10.63, 11.66, 12.96, 13.9, 15.02, 17.66, 19.07], "trend": 8.44, "latest": 19.07, "wordNumber": 567587, "creationStatus": 1, "desc": "#穿书##重生##双向误会##日常拌嘴##她真打他也是真的服##口嫌体正直##冤种世子在线挨打#\n#1v1##细水长流##成年人的恋爱##he#双洁#\n容忬穿书了，穿成一个穷得叮当响的猎户女。\n家里断粮三日，弟弟饿得啃桌子腿。\n好消息：捡到个四肢全断的漂亮男人，身上有银子。\n坏消息：原主把这个男人卖了换钱，换了三十两，害的人家胳膊被剁，复仇不得，怀恨而亡。\n更坏的消息：他重生了。\n但容忬不知道他重生了。想着怎么着也不能他复仇，准备刀了他。可看在那十两的份上，还是妥协了。\n扛回家，治，一套服务明码标价：你给钱，我救人，公平交易，童叟无欺。\n翟青祤望着这个上辈子将她卖掉的女人，发誓这一辈子都不会信她一个字。\n但这个女人不按剧本来。\n不温柔，不体贴，不假装关心，换药手重，喂饭靠怼，没耐心了就一巴掌。谈感情伤钱，谈钱又伤他。\n\"……你能不能轻点？\"\n\"轻点加多少钱？\"\n\"我不饿。\"\n\"你打算饿死好赊账？\"\n榜文出来了，悬赏二十五两。\n容忬看着这与记忆里不同的价格，又看了翟青祤一眼：\"你怎么还掉价了？\"\n翟青祤：\"……\"\n他恨她贪财，又恨自己动不了只能忍着，到后来，又发现忍习惯了……", "tags": ["种田", "古代言情", "乡村", "穿书", "HE", "双洁"], "borderColor": "#3498db", "backgroundColor": "#3498db22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2, "spanGaps": false}, {"label": "穿越农女断亲，有空间天天吃肉！", "fullTitle": "穿越农女断亲，有空间天天吃肉！", "link": "https://fanqienovel.com/page/7615591201386810393", "data": [12.25, 13.26, 13.23, 16.55, 17.78, 16.87, 16.44], "trend": 4.19, "latest": 16.44, "wordNumber": 928700, "creationStatus": 1, "desc": "动漫已上线！\n（有声已出）评分刚出，会涨的，放心入哈～\n【架空+空间+女强+家长里短+处理极品+日常+CP……】\n雇佣兵苏晚云，做最后一个任务被一枪爆头了。\n再醒来变成北国的农家女，要被奶奶和二叔拖去卖掉。\n她掌掴二叔，脚踢奶奶，带着被压榨得说话都不敢大声的爹决然断亲自立门户。\n上辈子的千万存款自动兑换成了灵泉空间，还有千亩良田。\n极品敢来闹事，打得他们鼻青脸肿。\n生死看淡，不服就干。\n住着破草棚，食不果腹，身无分文，那就上山打猎、挖草药，赚了银子就能盖房，天天大鱼大肉。\n有人抓着她的把柄来逼婚，直接干死他！\n她的愿望：赚到花不完的银子，直接躺平。\n某天，男人带着所有家当来敲门：“苏晚云，开门，我来入赘了。”", "tags": ["种田", "古代言情", "乡村", "穿越", "空间", "女强"], "borderColor": "#16a085", "backgroundColor": "#16a08522", "tension": 0.3, "pointRadius": 5, "borderWidth": 2, "spanGaps": false}, {"label": "穿成恶婆婆后，儿媳抢着给我养老", "fullTitle": "穿成恶婆婆后，儿媳抢着给我养老", "link": "https://fanqienovel.com/page/7519959894917647422", "data": [18.37, 18.47, 18.3, 17.92, 17.6, 17.45, 16.11], "trend": -2.26, "latest": 16.11, "wordNumber": 726421, "creationStatus": 0, "desc": "已完结，短剧已上线，欢迎收看。（无cp！种田+空间+家长里短（微群像）+发家致富+爽文+医术） \n注：新书字数少评分低正常，会慢慢涨的哟～\n医学博士吴玉兰猝死后，魂穿成了个刻薄尖酸的恶毒老太。\n　吴老太恶毒是出了名，磋磨儿媳，买卖孙女，啥腌臜事儿都干得出来。\n　　四个儿子，除了小儿子，其余都是干活的牛马。\n　　为了让小儿子吃上肉，冬日让大儿子上山打猎，害的大儿子差点被猛兽咬死；\n　　为了让小儿子念上书，夏日送二儿子去修河道，害的二儿子差点累死；\n　　为了给小儿子铺路，还把摔断腿的三儿子送去边关，害的三儿子差点战死。\n　　可某一天，吴老太变了......\n　　她不再宠溺小儿子，不受待见的孙女也被她挨个赎回。\n　　宋知康知晓妻子生产，千里迢迢赶回来，本以为妻子会被偏心母亲折磨得不成人样。\n　　结果让他傻眼......\n　　妻子面色红润，人胖了一圈。\n　　刚出生的女儿更是被养的胖嘟嘟，小手跟藕段似的肉嘟嘟。\n　　再看家中其他女眷，一个个丰圆玉润，悠闲的在廊下绣花。\n　　而他那恶毒老娘，正挥着大扫帚，追着她最疼爱的四儿子打。\n　　我的老天，这还是我家吗？", "tags": ["种田", "古代言情", "穿越", "空间", "医术", "发家致富"], "borderColor": "#e67e22", "backgroundColor": "#e67e2222", "tension": 0.3, "pointRadius": 5, "borderWidth": 2, "spanGaps": false}, {"label": "恶毒前妻再就业，汴京第一妙厨娘", "fullTitle": "恶毒前妻再就业，汴京第一妙厨娘", "link": "https://fanqienovel.com/page/7517953139266309144", "data": [null, null, null, null, 10.97, 13.96, 15.69], "trend": 4.72, "latest": 15.69, "wordNumber": 571144, "creationStatus": 1, "desc": "【1v1双洁+穿书+美食+经营+日常向】\n一睁眼，叶昭昭穿成了权臣文男主的恶毒前妻。\n在书中，原主做梦都想当官夫人。\n她使尽浑身解数嫁给男主，却在男主官职被一撸到底后，不顾男主和孩子的挽留，和离回到了扬州老家，二嫁给了青梅竹马。\n只是不到一年。\n竹马就转手将原主送给上峰做礼。\n原主逃出来，辗转回到汴京，却发现新帝登基，男主一朝翻身、敕封摄政王，誉满汴京。\n原主这个前妻也变得人人喊打，最后被擅作主张的下人活生生饿死在了柴房里。\n穿书后的叶昭昭，当然不想重蹈覆辙。\n放着现成的幸福生活不要，非要回什么扬州投奔青梅竹马？\n她脑子又没进水，分得清好赖。\n小姑子难缠小叔子阴郁；\n不愁，她苦练高情商，应付两个半大孩子还不容易？\n男主颓废潦倒家里入不敷出；\n不怕，她有厨艺傍身，能眼睁睁看着丈夫孩子饿死？\n只是，她的汴京小食肆开业的那一日，怎么全汴京的权贵都来捧她的场了？\n说好的全家低谷三年、人人可欺呢？\n流水的银子哗啦啦地进账，这哪里用得着吃苦头呀！\n原本麻木沉郁的男主更是将叶昭昭视若珍宝，全家人的日子也越过越好。", "tags": ["种田", "古代言情", "美食", "穿书", "双洁", "1v1"], "borderColor": "#e74c3c", "backgroundColor": "#e74c3c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2, "spanGaps": false}, {"label": "震惊！满朝文武都被我馋哭了", "fullTitle": "震惊！满朝文武都被我馋哭了", "link": "https://fanqienovel.com/page/7603295046657379390", "data": [16.85, 16.03, 15.13, 14.96, 15.26, 15.43, 14.59], "trend": -2.26, "latest": 14.59, "wordNumber": 733461, "creationStatus": 1, "desc": "【美食+爽文+系统+经营+种田】\n　　一朝穿越，沈清成了酒楼掌柜的独生女，本以为能衣食无忧，奈何一睁眼便是困难模式。\n　　原是父亲意外而亡，因家中没有男丁，偌大的家产却被堂哥占据，母女二人只能住进破屋当中，更有渣男背弃盟约，转同他人花前月下。\n　　没想到意外绑定了美食系统，完成对应的美食任务就能得到丰厚奖励。\n　　沈清直接撸起袖子，从摆摊开始奋斗。\n　　香辣炸鸡，水晶小笼包，竹筒爆浆麻薯，臭豆腐......\n　　一道道美食惹得众人趋之若鹜，就连许多皇亲贵胄都为之折腰。\n　　县令：太香了，太香了，得亏沈娘子在我们平安县。\n　　当朝首辅：沈娘子啥时候才能去京城开分店啊？每吃一次饭来回一个时辰的痛苦谁懂啊？\n　　威武将军：本将军不喜甜食......但沈娘子的甜食除外。\n　　......\n　　从无名摊主到无双食圣，沈清成功打造了一个美食帝国，留下许多关于“吃”的美谈。\n\n       PS：不会一上来就碰到大官哈，一点一点来的。", "tags": ["种田", "古代言情", "系统", "穿越", "美食", "魂穿"], "borderColor": "#2ecc71", "backgroundColor": "#2ecc7122", "tension": 0.3, "pointRadius": 5, "borderWidth": 2, "spanGaps": false}, {"label": "恶毒贵妃又又作死，弹幕教她躺赢", "fullTitle": "恶毒贵妃又又作死，弹幕教她躺赢", "link": "https://fanqienovel.com/page/7640115067735788606", "data": [13.49, 13.84, null, 14.33, 14.6, 14.15, 13.9], "trend": 0.41, "latest": 13.9, "wordNumber": 377575, "creationStatus": 1, "desc": "（评分刚出，会涨）【古言甜宠+帝王宠妃+双洁+弹幕爽文+虐渣打脸】\n戚以棠，太傅千金，生得花容月貌，过得顺风顺水。\n然而议亲那年，她被强取豪夺，成了反派帝王的妃子。\n竹马深情几许：“棠儿，你再忍忍，等我登基，定封你为后。”\n她信了竹马的话，打算给皇帝下毒。\n然而眼前飘过排排金色弹幕——\n“好蠢的女配，男主早和女主好上了，骗你送死呢！”\n“原著她下毒失败被反派囚禁了，桀桀桀黑化倒计时，搓手等待。”\n“死恋爱脑我服了！皇帝暗恋她十多年，给她后位不要，偏要当小三！”\n戚以棠：“……”\n蠢货竟是我自己？\n*****\n戚以棠觉醒了，自己竟是话本里的恶毒女配。\n因痴恋男主，她被骗下毒害死反派皇帝，导致大哥被诬陷通敌卖国，二哥被造谣私吞盐税，三哥被山贼砍掉半个脑袋，四哥染上花柳病……\n而男主踩着她全家的尸骨成了千古帝王！\n狗男人想让我当垫脚石，呵。\n戚以棠反手把毒药换成春药，灌进皇帝嘴里。\n既然弹幕说她是恶毒女配，何不“恶毒”到底呢？\n*****\n谢瓴知道戚以棠对他并无真心，但年少的执念困其一生，他偏要将她强娶到自己身边。\n后来，谢翎表示——\n瓜甜不甜，果然只有自己尝了才知道。", "tags": ["古言脑洞", "古代言情", "甜宠", "虐渣", "暗恋", "攻略反派"], "borderColor": "#f39c12", "backgroundColor": "#f39c1222", "tension": 0.3, "pointRadius": 5, "borderWidth": 2, "spanGaps": false}, {"label": "悍妻进门：扶起一屋软骨头", "fullTitle": "悍妻进门：扶起一屋软骨头", "link": "https://fanqienovel.com/page/7624469403525975064", "data": [null, 12.32, 13.02, 13.48, 13.76, 13.39, 13.32], "trend": 1.0, "latest": 13.32, "wordNumber": 671508, "creationStatus": 1, "desc": "【漫剧、真人有声已出】王金珠穿越成屠户的女儿，倒贴嫁妆嫁了个猎户。\n奈何猎户一家子全是软骨头，对着吸血的二房，偏心的二老，屁都不敢放一个。\n眼看小姑子都要被卖了，她的傻相公和公婆只知道跪地请求，她忍不了了。\n这群软骨头，她非给他们扳直了。", "tags": ["种田", "古代言情", "乡村", "穿越", "空间", "虐渣"], "borderColor": "#e91e8c", "backgroundColor": "#e91e8c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2, "spanGaps": false}, {"label": "八岁搬空全家，带弟北上找爹爹", "fullTitle": "八岁搬空全家，带弟北上找爹爹", "link": "https://fanqienovel.com/page/7649643512236870680", "data": [9.87, 9.7, 9.83, 9.76, 9.73, 9.4, 9.42], "trend": -0.45, "latest": 9.42, "wordNumber": 491372, "creationStatus": 1, "desc": "极品奶奶为了二两碎银，竟要把她年仅三岁的亲弟弟活活卖掉？！\n一朝重生，成了面黄肌瘦的八岁农家女，面对下落不明的亲爹和豺狼虎豹般的亲戚，林小丫冷笑一声。\n跟我玩阴的？神农空间在手，反手搬空极品全家私库，连夜送满门恶戚吃牢饭！\n转身带着弟弟踏上北上寻爹之路。逃荒路上饿殍遍野？她空间种田，荒地变江南；镇北军断粮陷入绝境？她反手掏出一座神仙粮仓，顺便潜入敌营，把敌军的粮草库连根毛都没留下！\n本以为这只是一场带着弟弟发家致富的寻亲之旅，可谁能告诉她，那个传闻中杀伐果断、权倾朝野的护国公，怎么红着眼眶追着她喊乖女儿？", "tags": ["种田", "古代言情", "乡村", "重生", "空间", "虐渣"], "borderColor": "#27ae60", "backgroundColor": "#27ae6022", "tension": 0.3, "pointRadius": 5, "borderWidth": 2, "spanGaps": false}, {"label": "穿成农家长姐后，种田致富养娃娃", "fullTitle": "穿成农家长姐后，种田致富养娃娃", "link": "https://fanqienovel.com/page/7506507753850948633", "data": [9.59, 9.51, 9.43, null, 8.87, 8.65, 8.59], "trend": -1.0, "latest": 8.59, "wordNumber": 929264, "creationStatus": 1, "desc": "【打猎养家+发家致富+武力医术+权谋争夺】 \n宋今昭，现代医学生，末世来临觉醒异能后加入基地保卫队接受特种兵训练。\n一朝穿越，原主的亲爹为了给朝廷修建运河被石头砸死，亲娘受不了打击早产去世留下一个刚出生的婴儿和一对年仅十岁的龙凤胎兄妹。\n大伯二伯不愿意收养四个孩子，决定将尚在襁褓里的幼弟过继给外人，把十岁的妹妹嫁出去给生病的小孩冲喜当童养媳。\n从小就是孤儿的宋今昭贪恋亲情，决定独自抚养三个弟弟妹妹，也算是报答占据原主身体的救命之恩。\n几年后…\n东照国天才探花郎：“我阿姐文能入朝堂，武能定天下，是东照国第一女将军。” \n皇朝第一女神医：“我阿姐才是天下第一神医。” \n拿着金算盘的孩童举起手，“阿姐，我要赚钱，要当天下第一首富。”", "tags": ["种田", "古代言情", "穿越", "医术", "发家致富", "养崽"], "borderColor": "#d35400", "backgroundColor": "#d3540022", "tension": 0.3, "pointRadius": 5, "borderWidth": 2, "spanGaps": false}, {"label": "穿成农家小福星，全家反派都慌了", "fullTitle": "穿成农家小福星，全家反派都慌了", "link": "https://fanqienovel.com/page/7629967669818575897", "data": [12.27, 11.79, 11.2, 10.64, 10.21, 8.85, 8.44], "trend": -3.83, "latest": 8.44, "wordNumber": 734749, "creationStatus": 1, "desc": "评分刚出会长得（漫剧上线，欢迎观看）\n【读心+种田+团宠+萌宝】\n\n云生生穿书了，成了书里3岁还不会说话的小傻子。\n\n一家子恶毒反派，花样作死，妥妥就是女主一家的对照组。\n\n云生生麻了，有苦说不出\n\n却不知一家人都能听到她的心声。\n\n她爹心狠手辣，杀人埋尸？结果那人好好活着，还和她爹合伙做生意\n\n她娘丧心病狂，在席面里投毒？结果她娘做饭越来越好吃，家家排队请她做席面\n\n大姐嫌弃姐夫多年科考不中，闹着和离还打死婆婆？结果大姐起早贪黑挣钱，供姐夫读书\n\n二姐重伤世子爷，还把他扔到荒野里喂狼？结果二姐把人背回家，还好生伺候\n\n三姐偷了钱跟着小白脸私奔，然后被卖青楼？结果三姐把小白脸变太监，还进宫\n\n四姐女扮男装入匪寨打家劫舍，然后被枭首示众？结果四姐女扮男装入军营，屡立战功\n\n以前众人嘲笑：云老二没儿子，要绝后\n\n后来众人跪舔：云大人的闺女各个大出息，一个顶十个儿子，牛啊！\n\n云家五朵金花，四个姐姐都名花有主，众媒婆赶紧盯上了最小的香饽饽，门槛差点被踩烂。\n\n宴时瑾拉着云生生的手让她看：“我为你准备了白玉金丝镶五彩宝石花盆……”\n\n云生生：“……”\n\n【云生生穿书/宴时瑾重生/原书女主穿越】", "tags": ["种田", "古代言情", "乡村", "幻想言情", "团宠", "穿书"], "borderColor": "#8e44ad", "backgroundColor": "#8e44ad22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2, "spanGaps": false}]};
+const SHELF_TAGS = [{"tag": "古代言情", "count": 14}, {"tag": "乡村", "count": 9}, {"tag": "穿越", "count": 8}, {"tag": "虐渣", "count": 4}, {"tag": "发家致富", "count": 4}, {"tag": "空间", "count": 4}, {"tag": "穿书", "count": 3}, {"tag": "幻想言情", "count": 2}, {"tag": "双洁", "count": 2}, {"tag": "医术", "count": 2}, {"tag": "美食", "count": 2}, {"tag": "强强", "count": 1}, {"tag": "宠夫", "count": 1}, {"tag": "萌宝", "count": 1}, {"tag": "无CP", "count": 1}];
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = '#2a3040';
+Chart.defaults.font.family = "-apple-system,'PingFang SC','Microsoft YaHei',sans-serif";
+const gridColor = 'rgba(42,48,64,0.8)';
+
+const datasets = (SHELF.datasets || []).slice().sort((a,b) => (b.trend||0) - (a.trend||0));
+const days = SHELF.days || [];
+
+document.getElementById('shelf-count').textContent = datasets.length + ' 本书目';
+document.getElementById('note-count').textContent = datasets.length;
+
+// 填充表头日期列
+const thead = document.querySelector('.book-table thead tr');
+const dayThPlaceholder = document.getElementById('day-headers');
+const dayFragment = document.createDocumentFragment();
+days.forEach(d => {
+  const th = document.createElement('th');
+  th.textContent = d;
+  th.style.width = '52px';
+  dayFragment.appendChild(th);
+});
+dayThPlaceholder.replaceWith(dayFragment);
+
+// 固定列宽（table-layout:fixed 下第一行 th 决定宽度）
+(function() {
+  const ths = document.querySelectorAll('.book-table thead tr th');
+  // 列顺序：展开btn / 序号 / 书名 / ...日期列... / 字数 / 净增 / 状态
+  const fixedWidths = { 0:'32px', 1:'28px', [ths.length-3]:'52px', [ths.length-2]:'52px', [ths.length-1]:'36px' };
+  ths.forEach((th, i) => {
+    if (fixedWidths[i]) th.style.width = fixedWidths[i];
+  });
+})();
+
+// solo legend
+function attachSoloLegend(legEl, chart, dsList) {
+  let soloIdx = -1;
+  const items = [];
+  dsList.forEach((ds, i) => {
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.innerHTML = `<span class="legend-dot" style="background:${ds.borderColor}"></span>${ds.label||ds.fullTitle||''}`;
+    item.addEventListener('click', () => {
+      if (soloIdx === i) {
+        soloIdx = -1;
+        for (let j = 0; j < dsList.length; j++) {
+          chart.getDatasetMeta(j).hidden = false;
+          items[j].classList.remove('solo','dimmed');
+        }
+      } else {
+        soloIdx = i;
+        for (let j = 0; j < dsList.length; j++) {
+          const hidden = j !== i;
+          chart.getDatasetMeta(j).hidden = hidden;
+          items[j].classList.toggle('solo', j === i);
+          items[j].classList.toggle('dimmed', hidden);
+        }
+      }
+      chart.update();
+    });
+    items.push(item);
+    legEl.appendChild(item);
+  });
+  if (dsList.length > 1) {
+    const hint = document.createElement('span');
+    hint.className = 'legend-hint';
+    hint.textContent = '点击只看该曲线';
+    legEl.appendChild(hint);
+  }
+}
+
+// 折线图
+const ctx = document.getElementById('shelfChart').getContext('2d');
+const chart = new Chart(ctx, {
+  type: 'line',
+  data: { labels: days, datasets: datasets },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1e2433', borderColor: '#2a3040', borderWidth: 1,
+        callbacks: { label: c => ` ${c.dataset.fullTitle||c.dataset.label}: ${c.parsed.y}万` }
+      }
+    },
+    scales: {
+      x: { grid:{color:gridColor}, ticks:{color:'#64748b'} },
+      y: { grid:{color:gridColor}, ticks:{color:'#64748b',callback:v=>parseFloat(v.toFixed(1))+'万'} }
+    }
+  }
+});
+attachSoloLegend(document.getElementById('shelfLegend'), chart, datasets);
+
+// 书目表格（按净增降序）
+const tbody = document.getElementById('shelfTbody');
+const sorted = [...datasets].sort((a,b) => (b.trend||0) - (a.trend||0));
+sorted.forEach((b, i) => {
+  const wn = b.wordNumber || 0;
+  const wStr = wn > 0 ? (Math.round(wn/1000)/10).toFixed(1)+'万' : '—';
+  const trendStr = b.trend > 0 ? '+'+b.trend+'万' : b.trend < 0 ? b.trend+'万' : '—';
+  const trendCls = b.trend > 0 ? 'trend-up' : b.trend < 0 ? 'trend-dn' : '';
+  const rid = `dr-${i}`;
+  const btnId = `btn-${i}`;
+  const latestVal = b.latest || 0;
+  const isHighlight = latestVal >= 10;
+  const cols = b.data.map((v, di) => {
+    const isLast = di === b.data.length - 1;
+    const hiCls = isLast && isHighlight ? ' class="inread-high"' : '';
+    const hiSfx = isLast && isHighlight ? ' ★' : '';
+    return v > 0
+      ? `<td${hiCls}>${v}万${hiSfx}</td>`
+      : `<td><span style="color:var(--text3)">—</span></td>`;
+  }).join('');
+  const isSerial = b.creationStatus === 1;
+  const statusHtml = isSerial
+    ? `<span class="status-dot serial"></span>`
+    : `<span class="status-dot finished"></span>`;
+  const tr = document.createElement('tr');
+  tr.style.cursor = 'pointer';
+  if (isHighlight) tr.className = 'row-highlight';
+  tr.innerHTML = `
+    <td><button class="expand-btn" id="${btnId}">+</button></td>
+    <td style="color:var(--text3)">${i+1}</td>
+    <td class="book-name-cell"><a href="${b.link}" target="_blank" onclick="event.stopPropagation()" title="${b.fullTitle}">${b.fullTitle}</a></td>
+    ${cols}
+    <td style="color:var(--text2)">${wStr}</td>
+    <td class="${trendCls}">${trendStr}</td>
+    <td style="text-align:center">${statusHtml}</td>`;
+  tbody.appendChild(tr);
+
+  const dr = document.createElement('tr');
+  dr.className = 'book-detail-row';
+  dr.id = rid;
+  const colspan = 6 + b.data.length;
+  const tagsHtml = (b.tags||[]).map(t=>`<span class="book-detail-tag">${t}</span>`).join('');
+  dr.innerHTML = `<td colspan="${colspan}">
+    <div class="book-detail-inner">
+      <div><span style="color:var(--text3)">书名：</span><span style="color:var(--text);font-weight:600">${b.fullTitle}</span></div>
+      <div style="margin-top:4px"><span style="color:var(--text3)">简介：</span>${b.desc||'暂无简介'}</div>
+      ${tagsHtml ? `<div class="book-detail-tags">${tagsHtml}</div>` : ''}
+    </div></td>`;
+  tbody.appendChild(dr);
+
+  const toggle = () => {
+    const row = document.getElementById(rid);
+    const open = row.classList.toggle('open');
+    const btn = document.getElementById(btnId);
+    if (btn) btn.textContent = open ? '−' : '+';
+  };
+  tr.addEventListener('click', toggle);
+});
+
+// 热门标签
+const tagBars = document.getElementById('shelfTagBars');
+if (SHELF_TAGS && SHELF_TAGS.length) {
+  const maxCount = SHELF_TAGS[0].count;
+  SHELF_TAGS.forEach(t => {
+    const row = document.createElement('div');
+    row.className = 'tag-bar-row';
+    row.innerHTML = `
+      <div class="tag-bar-name">${t.tag}</div>
+      <div class="tag-bar-track"><div class="tag-bar-fill" style="width:${Math.round(t.count/maxCount*100)}%;background:#f59e0b99"></div></div>
+      <div class="tag-bar-count">${t.count}本</div>`;
+    tagBars.appendChild(row);
+  });
+} else {
+  tagBars.innerHTML = '<div style="color:var(--text3);font-size:12px">暂无标签数据</div>';
+}
+</script>
+</body>
+</html>

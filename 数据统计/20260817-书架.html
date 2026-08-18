@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>番茄书架 · 8月17日</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117; --bg2: #171b26; --bg3: #1e2433; --border: #2a3040;
+    --text: #e2e8f0; --text2: #94a3b8; --text3: #64748b;
+    --accent: #f59e0b; --accent-dim: rgba(245,158,11,.12);
+    --green: #22c55e; --red: #ef4444; --blue: #3b82f6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system,'PingFang SC','Microsoft YaHei',sans-serif; font-size: 14px; line-height: 1.6; }
+
+  .header {
+    background: linear-gradient(160deg,#1c2138 0%,#0f1117 60%);
+    border-bottom: 1px solid var(--border);
+    padding: 32px 40px 28px;
+  }
+  .header-eyebrow { font-size: 11px; letter-spacing: .12em; color: var(--text3); text-transform: uppercase; margin-bottom: 8px; }
+  .header h1 { font-size: 24px; font-weight: 800; letter-spacing: -.3px; line-height: 1.2; margin-bottom: 8px; }
+  .header h1 span { color: var(--accent); }
+  .header-sub { color: var(--text2); font-size: 13px; display: flex; gap: 16px; flex-wrap: wrap; }
+  .header-sub .dot { color: var(--border); }
+
+  .container { max-width: 1320px; margin: 0 auto; padding: 32px 40px 80px; }
+  .section { margin-bottom: 52px; }
+  .section-header {
+    display: flex; align-items: baseline; gap: 10px;
+    margin-bottom: 18px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num { font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: .08em; flex-shrink: 0; }
+  .section-title { font-size: 16px; font-weight: 700; }
+  .badge { background: var(--accent); color: #000; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 3px; letter-spacing: .04em; flex-shrink: 0; }
+
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+  .chart-wrap { position: relative; }
+  .note { background: var(--accent-dim); border: 1px solid rgba(245,158,11,.2); border-radius: 8px; padding: 12px 16px; color: var(--text2); font-size: 12px; line-height: 1.7; margin-bottom: 20px; }
+  .note strong { color: var(--accent); }
+
+  .book-layout { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px; align-items: stretch; }
+  @media (max-width: 1100px) { .book-layout { grid-template-columns: 1fr; } }
+
+  .legend-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .legend-item {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 12px; color: var(--text2);
+    cursor: pointer;
+    padding: 3px 8px; border-radius: 4px;
+    border: 1px solid transparent;
+    transition: border-color .12s, opacity .12s, background .12s;
+    user-select: none;
+  }
+  .legend-item:hover { border-color: var(--border); background: rgba(255,255,255,.03); }
+  .legend-item.dimmed { opacity: .22; }
+  .legend-item.solo { border-color: var(--accent); background: var(--accent-dim); color: var(--text); opacity: 1; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .legend-hint { font-size: 11px; color: var(--text3); align-self: center; margin-left: 4px; flex-shrink: 0; }
+
+  .book-table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+  .book-table th { text-align: left; padding: 7px 10px; color: var(--text3); font-weight: 500; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg2); z-index: 1; }
+  .book-table td { padding: 7px 10px; border-bottom: 1px solid rgba(42,48,64,.4); }
+  .book-table .book-name-cell { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 0; }
+  .book-detail-row td { white-space: normal; overflow: visible; word-break: break-word; }
+  .book-table tr:hover td { background: var(--bg3); }
+  .book-table a { color: var(--blue); text-decoration: none; }
+  .book-table a:hover { text-decoration: underline; }
+  .trend-up { color: var(--green); font-weight: 600; }
+  .trend-dn { color: var(--red); }
+  .expand-btn { background: none; border: 1px solid var(--border); color: var(--text3); border-radius: 4px; padding: 1px 7px; font-size: 11px; cursor: pointer; transition: all .15s; }
+  .expand-btn:hover { border-color: var(--text2); color: var(--text); }
+  .book-detail-row { display: none; }
+  .book-detail-row.open { display: table-row; }
+  .book-detail-row td { padding: 10px 14px 14px; background: var(--bg3); border-bottom: 1px solid rgba(42,48,64,.4); }
+  .book-detail-inner { font-size: 12px; color: var(--text2); line-height: 1.7; }
+  .book-detail-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .book-detail-tag { background: rgba(59,130,246,.12); color: #93c5fd; border-radius: 3px; padding: 1px 7px; font-size: 11px; }
+  .row-highlight td { background: rgba(245,158,11,.07) !important; }
+  .row-highlight:hover td { background: rgba(245,158,11,.13) !important; }
+
+  .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; vertical-align: middle; flex-shrink: 0; }
+  .status-dot.serial { background: #22c55e; animation: breathe 2s ease-in-out infinite; }
+  .status-dot.finished { background: #475569; }
+  @keyframes breathe {
+    0%, 100% { opacity: 1; box-shadow: 0 0 4px 2px rgba(34,197,94,.5); }
+    50%       { opacity: .55; box-shadow: 0 0 8px 3px rgba(34,197,94,.18); }
+  }
+  .inread-high { color: var(--accent); font-weight: 700; }
+
+  .tag-section { margin-top: 0; }
+  .tag-section-title { font-size: 13px; color: var(--text2); font-weight: 600; margin-bottom: 12px; }
+  .tag-bar-list { display: flex; flex-direction: column; gap: 7px; }
+  .tag-bar-row { display: flex; align-items: center; gap: 10px; }
+  .tag-bar-name { width: 80px; font-size: 12px; color: var(--text); text-align: right; flex-shrink: 0; }
+  .tag-bar-track { flex: 1; background: var(--bg3); border-radius: 3px; height: 16px; overflow: hidden; }
+  .tag-bar-fill { height: 100%; border-radius: 3px; }
+  .tag-bar-count { font-size: 11px; color: var(--text3); flex-shrink: 0; width: 36px; }
+
+  @media (max-width: 600px) {
+    .header { padding: 20px; }
+    .container { padding: 20px 16px 60px; }
+  }
+
+  .period-float {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    background: rgba(23,27,38,.94);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 4px 28px rgba(0,0,0,.45);
+  }
+  .period-group-label {
+    font-size: 10px; font-weight: 700; color: var(--text3);
+    letter-spacing: .08em; text-transform: uppercase;
+    padding: 4px 10px 2px;
+  }
+  .period-divider { height: 1px; background: var(--border); margin: 4px 6px; }
+  .period-btn {
+    display: flex; align-items: center; gap: 7px;
+    padding: 8px 14px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 13px; font-weight: 600;
+    color: var(--text3);
+    background: transparent;
+    border: 1px solid transparent;
+    transition: color .15s, background .15s, border-color .15s, box-shadow .15s;
+    white-space: nowrap;
+    letter-spacing: .02em;
+    text-decoration: none;
+  }
+  .period-btn:hover { color: var(--text2); border-color: var(--border); background: rgba(255,255,255,.04); }
+  .period-btn.active {
+    background: var(--accent-dim);
+    color: var(--accent);
+    border-color: rgba(245,158,11,.35);
+    box-shadow: 0 0 10px rgba(245,158,11,.18);
+  }
+  .period-btn-num { font-size: 10px; font-weight: 700; color: inherit; opacity: .7; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+
+<div class="period-float">
+  <div class="period-group-label">榜单</div>
+  <a class="period-btn" href="index.html"><span class="period-btn-num">7日</span>趋势分析</a>
+  <div class="period-divider"></div>
+  <div class="period-group-label">书架</div>
+  <a class="period-btn active" href="bookshelf.html"><span class="period-btn-num">7日</span>书架</a>
+</div>
+
+<div class="header">
+  <div class="header-eyebrow">番茄小说 · 书架</div>
+  <h1>书架 <span>8月17日</span></h1>
+  <div class="header-sub">
+    <span id="shelf-count"></span>
+    <span class="dot">·</span>
+    <span>书架  8月8日–8月17日</span>
+  </div>
+</div>
+
+<div class="container">
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <span class="badge">书架</span>
+      <span class="section-title">书架书目 · 7日在读趋势</span>
+    </div>
+    <div class="note">共 <strong id="note-count">0</strong> 本书架书目。在读人数来自每日榜单（上榜时）+ 今日详情页补全。折线只显示有数据的天次，空缺表示当天未上任何榜单且无详情页数据。</div>
+    <div class="book-layout">
+      <div class="card">
+        <div id="shelfLegend" class="legend-row" style="margin-bottom:10px"></div>
+        <div class="chart-wrap" style="height:520px"><canvas id="shelfChart"></canvas></div>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;min-height:560px">
+        <div style="font-size:13px;color:var(--text2);margin-bottom:10px;flex-shrink:0">
+          全部书目（按净增降序）<span style="font-size:11px;color:var(--text3);margin-left:8px">★ 最新日在读&gt;10万高亮</span>
+        </div>
+        <div style="overflow-x:auto;overflow-y:auto;flex:1">
+        <table class="book-table">
+          <thead>
+            <tr>
+              <th></th><th>#</th><th>书名</th>
+              <th id="day-headers"></th>
+              <th>字数</th><th>净增</th><th>状态</th>
+            </tr>
+          </thead>
+          <tbody id="shelfTbody"></tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <span class="badge">标签</span>
+      <span class="section-title">书架热门标签</span>
+    </div>
+    <div class="card tag-section">
+      <div class="tag-section-title">📌 热门标签（基于书架全部书目，可作为开书参考）</div>
+      <div class="tag-bar-list" id="shelfTagBars"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SHELF = {"dateLabel": "8月17日", "dateRange": "书架  8月8日–8月17日", "days": ["8月8日", "8月10日", "8月11日", "8月12日", "8月13日", "8月14日", "8月17日"], "rawDays": ["20260808", "20260810", "20260811", "20260812", "20260813", "20260814", "20260817"], "datasets": []};
+const SHELF_TAGS = [];
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = '#2a3040';
+Chart.defaults.font.family = "-apple-system,'PingFang SC','Microsoft YaHei',sans-serif";
+const gridColor = 'rgba(42,48,64,0.8)';
+
+const datasets = (SHELF.datasets || []).slice().sort((a,b) => (b.trend||0) - (a.trend||0));
+const days = SHELF.days || [];
+
+document.getElementById('shelf-count').textContent = datasets.length + ' 本书目';
+document.getElementById('note-count').textContent = datasets.length;
+
+// 填充表头日期列
+const thead = document.querySelector('.book-table thead tr');
+const dayThPlaceholder = document.getElementById('day-headers');
+const dayFragment = document.createDocumentFragment();
+days.forEach(d => {
+  const th = document.createElement('th');
+  th.textContent = d;
+  th.style.width = '52px';
+  dayFragment.appendChild(th);
+});
+dayThPlaceholder.replaceWith(dayFragment);
+
+// 固定列宽（table-layout:fixed 下第一行 th 决定宽度）
+(function() {
+  const ths = document.querySelectorAll('.book-table thead tr th');
+  // 列顺序：展开btn / 序号 / 书名 / ...日期列... / 字数 / 净增 / 状态
+  const fixedWidths = { 0:'32px', 1:'28px', [ths.length-3]:'52px', [ths.length-2]:'52px', [ths.length-1]:'36px' };
+  ths.forEach((th, i) => {
+    if (fixedWidths[i]) th.style.width = fixedWidths[i];
+  });
+})();
+
+// solo legend
+function attachSoloLegend(legEl, chart, dsList) {
+  let soloIdx = -1;
+  const items = [];
+  dsList.forEach((ds, i) => {
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.innerHTML = `<span class="legend-dot" style="background:${ds.borderColor}"></span>${ds.label||ds.fullTitle||''}`;
+    item.addEventListener('click', () => {
+      if (soloIdx === i) {
+        soloIdx = -1;
+        for (let j = 0; j < dsList.length; j++) {
+          chart.getDatasetMeta(j).hidden = false;
+          items[j].classList.remove('solo','dimmed');
+        }
+      } else {
+        soloIdx = i;
+        for (let j = 0; j < dsList.length; j++) {
+          const hidden = j !== i;
+          chart.getDatasetMeta(j).hidden = hidden;
+          items[j].classList.toggle('solo', j === i);
+          items[j].classList.toggle('dimmed', hidden);
+        }
+      }
+      chart.update();
+    });
+    items.push(item);
+    legEl.appendChild(item);
+  });
+  if (dsList.length > 1) {
+    const hint = document.createElement('span');
+    hint.className = 'legend-hint';
+    hint.textContent = '点击只看该曲线';
+    legEl.appendChild(hint);
+  }
+}
+
+// 折线图
+const ctx = document.getElementById('shelfChart').getContext('2d');
+const chart = new Chart(ctx, {
+  type: 'line',
+  data: { labels: days, datasets: datasets },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1e2433', borderColor: '#2a3040', borderWidth: 1,
+        callbacks: { label: c => ` ${c.dataset.fullTitle||c.dataset.label}: ${c.parsed.y}万` }
+      }
+    },
+    scales: {
+      x: { grid:{color:gridColor}, ticks:{color:'#64748b'} },
+      y: { grid:{color:gridColor}, ticks:{color:'#64748b',callback:v=>parseFloat(v.toFixed(1))+'万'} }
+    }
+  }
+});
+attachSoloLegend(document.getElementById('shelfLegend'), chart, datasets);
+
+// 书目表格（按净增降序）
+const tbody = document.getElementById('shelfTbody');
+const sorted = [...datasets].sort((a,b) => (b.trend||0) - (a.trend||0));
+sorted.forEach((b, i) => {
+  const wn = b.wordNumber || 0;
+  const wStr = wn > 0 ? (Math.round(wn/1000)/10).toFixed(1)+'万' : '—';
+  const trendStr = b.trend > 0 ? '+'+b.trend+'万' : b.trend < 0 ? b.trend+'万' : '—';
+  const trendCls = b.trend > 0 ? 'trend-up' : b.trend < 0 ? 'trend-dn' : '';
+  const rid = `dr-${i}`;
+  const btnId = `btn-${i}`;
+  const latestVal = b.latest || 0;
+  const isHighlight = latestVal >= 10;
+  const cols = b.data.map((v, di) => {
+    const isLast = di === b.data.length - 1;
+    const hiCls = isLast && isHighlight ? ' class="inread-high"' : '';
+    const hiSfx = isLast && isHighlight ? ' ★' : '';
+    return v > 0
+      ? `<td${hiCls}>${v}万${hiSfx}</td>`
+      : `<td><span style="color:var(--text3)">—</span></td>`;
+  }).join('');
+  const isSerial = b.creationStatus === 1;
+  const statusHtml = isSerial
+    ? `<span class="status-dot serial"></span>`
+    : `<span class="status-dot finished"></span>`;
+  const tr = document.createElement('tr');
+  tr.style.cursor = 'pointer';
+  if (isHighlight) tr.className = 'row-highlight';
+  tr.innerHTML = `
+    <td><button class="expand-btn" id="${btnId}">+</button></td>
+    <td style="color:var(--text3)">${i+1}</td>
+    <td class="book-name-cell"><a href="${b.link}" target="_blank" onclick="event.stopPropagation()" title="${b.fullTitle}">${b.fullTitle}</a></td>
+    ${cols}
+    <td style="color:var(--text2)">${wStr}</td>
+    <td class="${trendCls}">${trendStr}</td>
+    <td style="text-align:center">${statusHtml}</td>`;
+  tbody.appendChild(tr);
+
+  const dr = document.createElement('tr');
+  dr.className = 'book-detail-row';
+  dr.id = rid;
+  const colspan = 6 + b.data.length;
+  const tagsHtml = (b.tags||[]).map(t=>`<span class="book-detail-tag">${t}</span>`).join('');
+  dr.innerHTML = `<td colspan="${colspan}">
+    <div class="book-detail-inner">
+      <div><span style="color:var(--text3)">书名：</span><span style="color:var(--text);font-weight:600">${b.fullTitle}</span></div>
+      <div style="margin-top:4px"><span style="color:var(--text3)">简介：</span>${b.desc||'暂无简介'}</div>
+      ${tagsHtml ? `<div class="book-detail-tags">${tagsHtml}</div>` : ''}
+    </div></td>`;
+  tbody.appendChild(dr);
+
+  const toggle = () => {
+    const row = document.getElementById(rid);
+    const open = row.classList.toggle('open');
+    const btn = document.getElementById(btnId);
+    if (btn) btn.textContent = open ? '−' : '+';
+  };
+  tr.addEventListener('click', toggle);
+});
+
+// 热门标签
+const tagBars = document.getElementById('shelfTagBars');
+if (SHELF_TAGS && SHELF_TAGS.length) {
+  const maxCount = SHELF_TAGS[0].count;
+  SHELF_TAGS.forEach(t => {
+    const row = document.createElement('div');
+    row.className = 'tag-bar-row';
+    row.innerHTML = `
+      <div class="tag-bar-name">${t.tag}</div>
+      <div class="tag-bar-track"><div class="tag-bar-fill" style="width:${Math.round(t.count/maxCount*100)}%;background:#f59e0b99"></div></div>
+      <div class="tag-bar-count">${t.count}本</div>`;
+    tagBars.appendChild(row);
+  });
+} else {
+  tagBars.innerHTML = '<div style="color:var(--text3);font-size:12px">暂无标签数据</div>';
+}
+</script>
+</body>
+</html>
