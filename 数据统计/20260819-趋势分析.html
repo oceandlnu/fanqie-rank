@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>番茄女频榜单 · 趋势分析 8月11日–8月19日</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117; --bg2: #171b26; --bg3: #1e2433; --border: #2a3040;
+    --text: #e2e8f0; --text2: #94a3b8; --text3: #64748b;
+    --accent: #f59e0b; --accent-dim: rgba(245,158,11,.12);
+    --green: #22c55e; --red: #ef4444; --blue: #3b82f6;
+    --nav-h: 48px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system,'PingFang SC','Microsoft YaHei',sans-serif; font-size: 14px; line-height: 1.6; }
+
+  /* ── Fetch warning banner ── */
+  .fetch-warn {
+    background: rgba(239,68,68,.08);
+    border-bottom: 1px solid rgba(239,68,68,.25);
+    padding: 10px 40px;
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 13px; color: #fca5a5; line-height: 1.6;
+  }
+  .fetch-warn-icon { font-size: 15px; margin-top: 1px; flex-shrink: 0; }
+  .fetch-warn b { color: #fca5a5; font-weight: 700; }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(160deg,#1c2138 0%,#0f1117 60%);
+    border-bottom: 1px solid var(--border);
+    padding: 32px 40px 28px;
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; flex-wrap: wrap;
+  }
+  .header-left { flex: 1; min-width: 0; }
+  .header-eyebrow { font-size: 11px; letter-spacing: .12em; color: var(--text3); text-transform: uppercase; margin-bottom: 8px; }
+  .header h1 { font-size: 24px; font-weight: 800; letter-spacing: -.3px; line-height: 1.2; margin-bottom: 8px; }
+  .header h1 span { color: var(--accent); }
+  .header-sub { color: var(--text2); font-size: 13px; display: flex; gap: 16px; flex-wrap: wrap; }
+  .header-sub .dot { color: var(--border); }
+
+  /* ── Floating period switcher ── */
+  .period-float {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    background: rgba(23,27,38,.94);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 4px 28px rgba(0,0,0,.45);
+  }
+  .period-group-label {
+    font-size: 10px; font-weight: 700; color: var(--text3);
+    letter-spacing: .08em; text-transform: uppercase;
+    padding: 4px 10px 2px;
+  }
+  .period-divider { height: 1px; background: var(--border); margin: 4px 6px; }
+  .period-btn {
+    display: flex; align-items: center; gap: 7px;
+    padding: 8px 14px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 13px; font-weight: 600;
+    color: var(--text3);
+    background: transparent;
+    border: 1px solid transparent;
+    transition: color .15s, background .15s, border-color .15s, box-shadow .15s;
+    white-space: nowrap;
+    letter-spacing: .02em;
+    text-decoration: none;
+  }
+  .period-btn:hover { color: var(--text2); border-color: var(--border); background: rgba(255,255,255,.04); }
+  .period-btn.active {
+    background: var(--accent-dim);
+    color: var(--accent);
+    border-color: rgba(245,158,11,.35);
+    box-shadow: 0 0 10px rgba(245,158,11,.18);
+  }
+  .period-btn-num { font-size: 10px; font-weight: 700; color: inherit; opacity: .7; font-variant-numeric: tabular-nums; }
+
+  /* ── Sticky nav ── */
+  .sticky-nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(15,17,23,.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    height: var(--nav-h);
+    display: flex; align-items: center;
+    padding: 0 40px;
+    gap: 4px;
+    overflow-x: auto;
+  }
+  .sticky-nav::-webkit-scrollbar { display: none; }
+  .nav-item {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px; font-weight: 500;
+    color: var(--text3);
+    white-space: nowrap;
+    border: 1px solid transparent;
+    transition: color .15s, border-color .15s, background .15s;
+    text-decoration: none;
+  }
+  .nav-item:hover { color: var(--text2); border-color: var(--border); }
+  .nav-item.active { color: var(--accent); border-color: rgba(245,158,11,.3); background: var(--accent-dim); }
+  .nav-num { font-size: 10px; font-weight: 700; color: var(--text3); font-variant-numeric: tabular-nums; }
+  .nav-sep { width: 1px; height: 16px; background: var(--border); margin: 0 4px; flex-shrink: 0; }
+
+  /* ── Layout ── */
+  .period-panel { display: none; }
+  .period-panel.active { display: block; }
+  .container { max-width: 1320px; margin: 0 auto; padding: 32px 40px 80px; }
+  .section { margin-bottom: 52px; scroll-margin-top: calc(var(--nav-h) + 16px); }
+  .section-header {
+    display: flex; align-items: baseline; gap: 10px;
+    margin-bottom: 18px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num { font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: .08em; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+  .section-title { font-size: 16px; font-weight: 700; }
+  .badge { background: var(--accent); color: #000; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 3px; letter-spacing: .04em; flex-shrink: 0; }
+
+  /* ── Cards & common ── */
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+  .chart-wrap { position: relative; }
+  .note { background: var(--accent-dim); border: 1px solid rgba(245,158,11,.2); border-radius: 8px; padding: 12px 16px; color: var(--text2); font-size: 12px; line-height: 1.7; margin-bottom: 20px; }
+  .note strong { color: var(--accent); }
+
+  /* ── Rec cards ── */
+  .score-group { margin-bottom: 24px; }
+  .score-group-label { font-size: 11px; color: var(--text3); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 12px; padding-left: 2px; }
+  .rec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .rec-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; position: relative; overflow: hidden; }
+  .rec-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; }
+  .rec-card.s8::before { background: linear-gradient(180deg,#f59e0b,#ef4444); }
+  .rec-card.s7::before { background: linear-gradient(180deg,#22c55e,#3b82f6); }
+  .rec-card.s6::before { background: linear-gradient(180deg,#6366f1,#8b5cf6); }
+  .rec-card.s5::before { background: #3498db; }
+  .rec-card.slo::before { background: var(--bg3); }
+  .rec-cat { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .rec-score-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 12px; margin-bottom: 10px; }
+  .rec-score-badge.high { background: rgba(245,158,11,.15); color: var(--accent); border: 1px solid rgba(245,158,11,.3); }
+  .rec-score-badge.med  { background: rgba(34,197,94,.12); color: #86efac; border: 1px solid rgba(34,197,94,.25); }
+  .rec-score-badge.low  { background: rgba(100,116,139,.15); color: var(--text3); border: 1px solid rgba(100,116,139,.25); }
+  .rec-stats { display: flex; gap: 14px; margin-bottom: 10px; flex-wrap: wrap; }
+  .rec-stat .val { font-size: 15px; font-weight: 700; }
+  .rec-stat .lbl { font-size: 11px; color: var(--text3); }
+  .rec-reasons { display: flex; flex-wrap: wrap; gap: 4px; }
+  .rec-reasons span { font-size: 11px; padding: 2px 7px; border-radius: 3px; }
+  .tag-green  { background: rgba(34,197,94,.15); color: #86efac; }
+  .tag-yellow { background: rgba(245,158,11,.15); color: #fde68a; }
+  .tag-blue   { background: rgba(59,130,246,.15); color: #93c5fd; }
+  .tag-purple { background: rgba(168,85,247,.15); color: #d8b4fe; }
+  .tag-red    { background: rgba(239,68,68,.15); color: #fca5a5; }
+
+  /* ── Table ── */
+  .overview-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .overview-table th { text-align: left; padding: 8px 12px; color: var(--text3); font-weight: 500; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .overview-table td { padding: 7px 12px; border-bottom: 1px solid rgba(42,48,64,.5); white-space: nowrap; }
+  .overview-table tr:hover td { background: var(--bg3); }
+  .overview-table .cat-name { font-weight: 600; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .pill-up { background: rgba(34,197,94,.15); color: #86efac; }
+  .pill-dn { background: rgba(239,68,68,.12); color: #fca5a5; }
+
+  /* ── Racer tabs (赛道) ── */
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab { padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text2); background: var(--bg3); border: 1px solid var(--border); transition: all .15s; }
+  .tab:hover { color: var(--text); border-color: var(--text3); }
+  .tab.active { background: var(--accent); color: #000; border-color: var(--accent); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── Book table ── */
+  .book-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 16px; table-layout: fixed; }
+  .book-table th { text-align: left; padding: 7px 10px; color: var(--text3); font-weight: 500; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg2); z-index: 1; }
+  .book-table td { padding: 7px 10px; border-bottom: 1px solid rgba(42,48,64,.4); }
+  .book-table tr:hover td { background: var(--bg3); }
+  .book-table a { color: var(--blue); text-decoration: none; }
+  .book-table a:hover { text-decoration: underline; }
+  .book-table .book-name-cell { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 0; }
+  .book-detail-row td { white-space: normal; overflow: visible; word-break: break-word; }
+  .trend-up { color: var(--green); font-weight: 600; }
+  .trend-mid { color: #f97316; font-weight: 600; }
+  .trend-dn { color: var(--red); }
+  .expand-btn { background: none; border: 1px solid var(--border); color: var(--text3); border-radius: 4px; padding: 1px 7px; font-size: 11px; cursor: pointer; transition: all .15s; }
+  .expand-btn:hover { border-color: var(--text2); color: var(--text); }
+  .book-detail-row { display: none; }
+  .book-detail-row.open { display: table-row; }
+  .book-detail-row td { padding: 10px 14px 14px; background: var(--bg3); border-bottom: 1px solid rgba(42,48,64,.4); }
+  .book-detail-inner { font-size: 12px; color: var(--text2); line-height: 1.7; }
+  .book-detail-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .book-detail-tag { background: rgba(59,130,246,.12); color: #93c5fd; border-radius: 3px; padding: 1px 7px; font-size: 11px; }
+  .dual-badge {
+    display: inline-block; margin-left: 6px; padding: 1px 6px;
+    font-size: 10px; font-weight: 700; letter-spacing: .05em;
+    color: #fbbf24; background: rgba(251,191,36,.14);
+    border: 1px solid rgba(251,191,36,.4);
+    border-radius: 3px; vertical-align: middle;
+  }
+  .row-dual td { background: rgba(251,191,36,.05); }
+  .row-dual:hover td { background: rgba(251,191,36,.09) !important; }
+
+  /* ── Tags ── */
+  .tag-section { margin-top: 16px; }
+  .tag-section-title { font-size: 13px; color: var(--text2); font-weight: 600; margin-bottom: 12px; }
+  .tag-bar-list { display: flex; flex-direction: column; gap: 7px; }
+  .tag-bar-row { display: flex; align-items: center; gap: 10px; }
+  .tag-bar-name { width: 80px; font-size: 12px; color: var(--text); text-align: right; flex-shrink: 0; }
+  .tag-bar-track { flex: 1; background: var(--bg3); border-radius: 3px; height: 16px; overflow: hidden; }
+  .tag-bar-fill { height: 100%; border-radius: 3px; }
+  .tag-bar-count { font-size: 11px; color: var(--text3); flex-shrink: 0; width: 36px; }
+
+  /* ── Layout helpers ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+  .book-layout { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px; align-items: start; margin-top: 4px; }
+  .book-layout > .card { margin-top: 0; }
+  @media (max-width: 1100px) { .book-layout { grid-template-columns: 1fr; } }
+
+  /* ── Solo legend ── */
+  .legend-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .legend-item {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 12px; color: var(--text2);
+    cursor: pointer;
+    padding: 3px 8px; border-radius: 4px;
+    border: 1px solid transparent;
+    transition: border-color .12s, opacity .12s, background .12s;
+    user-select: none;
+  }
+  .legend-item:hover { border-color: var(--border); background: rgba(255,255,255,.03); }
+  .legend-item.dimmed { opacity: .22; }
+  .legend-item.solo { border-color: var(--accent); background: var(--accent-dim); color: var(--text); opacity: 1; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .legend-hint { font-size: 11px; color: var(--text3); align-self: center; margin-left: 4px; flex-shrink: 0; }
+
+  @media (max-width: 600px) {
+    .header { padding: 20px; }
+    .container { padding: 20px 16px 60px; }
+    .sticky-nav { padding: 0 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-eyebrow">番茄小说 · 女频榜单</div>
+    <h1>趋势分析 <span id="header-date-range">8月11日–8月19日</span></h1>
+    <div class="header-sub">
+      <span>18 个分类</span>
+      <span class="dot">·</span>
+      <span>每类 TOP 30</span>
+      <span class="dot">·</span>
+      <span id="header-range-label">2026-08-11 ~ 2026-08-19</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── Floating period switcher ── -->
+<div class="period-float">
+  <div class="period-group-label">新书榜</div>
+  <button class="period-btn" id="btnNew7"><span class="period-btn-num">7日</span>新书榜榜单</button>
+  <button class="period-btn" id="btnNew3"><span class="period-btn-num">3日</span>新书榜榜单</button>
+  <div class="period-divider"></div>
+  <div class="period-group-label">阅读榜</div>
+  <button class="period-btn" id="btnRead7"><span class="period-btn-num">7日</span>阅读榜榜单</button>
+  <button class="period-btn" id="btnRead3"><span class="period-btn-num">3日</span>阅读榜榜单</button>
+  <div class="period-divider"></div>
+  <div class="period-group-label">书架</div>
+  <a class="period-btn" href="bookshelf.html"><span class="period-btn-num">7日</span>书架</a>
+</div>
+<nav class="sticky-nav" id="stickyNav"></nav>
+
+<div class="period-panel" id="panelNew7"></div>
+<div class="period-panel" id="panelNew3"></div>
+<div class="period-panel" id="panelRead7"></div>
+<div class="period-panel" id="panelRead3"></div>
+
+<script>
+const DATA = {
+  New7:  {"n": 7, "days": ["8月11日", "8月12日", "8月13日", "8月14日", "8月17日", "8月18日", "8月19日"], "rawDays": ["20260811", "20260812", "20260813", "20260814", "20260817", "20260818", "20260819"], "startLabel": "8月11日", "endLabel": "8月19日", "dateRange": "2026-08-11 ~ 2026-08-19", "nRising": 1, "catTags": {"种田": [{"tag": "古代言情", "count": 4}, {"tag": "穿越", "count": 2}, {"tag": "兽世", "count": 2}, {"tag": "大佬", "count": 2}, {"tag": "甜宠", "count": 1}, {"tag": "医术", "count": 1}, {"tag": "HE", "count": 1}, {"tag": "1v1", "count": 1}, {"tag": "乡村", "count": 1}, {"tag": "宠妻", "count": 1}]}, "overviewDatasets": [{"label": "民国言情", "data": [31.7, 32.5, 49.6, 36.0, 44.9, 40.6, 41.5], "borderColor": "#7f8c8d", "backgroundColor": "#7f8c8d22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}], "growthCats": ["民国言情", "职场婚恋", "玄幻言情", "种田", "游戏体育", "科幻末世", "现言脑洞", "豪门总裁", "快穿", "古风世情", "女频衍生", "古言脑洞", "青春甜宠", "悬疑脑洞", "宫斗宅斗", "年代", "女频悬疑", "星光璀璨"], "growthValues": [31.0, -0.0, -0.8, -1.3, -5.5, -10.5, -10.8, -14.6, -15.5, -16.1, -16.4, -17.7, -18.7, -22.3, -24.6, -25.1, -29.4, -30.2], "growthColors": ["#22c55e", "#22c55e", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444"], "bubbleData": [{"x": 101.8, "y": 3.5, "r": 5.8, "label": "古言脑洞", "count10w": 1}, {"x": 62.6, "y": 5.5, "r": 4, "label": "古风世情", "count10w": 0}, {"x": 74.1, "y": 5.3, "r": 5.8, "label": "女频悬疑", "count10w": 1}, {"x": 202.6, "y": 2.8, "r": 13.0, "label": "女频衍生", "count10w": 5}, {"x": 172.8, "y": 3.0, "r": 11.2, "label": "宫斗宅斗", "count10w": 4}, {"x": 200.5, "y": 4.1, "r": 11.2, "label": "年代", "count10w": 4}, {"x": 231.3, "y": 2.4, "r": 16.6, "label": "快穿", "count10w": 7}, {"x": 154.7, "y": 4.2, "r": 11.2, "label": "悬疑脑洞", "count10w": 4}, {"x": 146.3, "y": 7.7, "r": 9.4, "label": "星光璀璨", "count10w": 3}, {"x": 41.5, "y": 9.8, "r": 4, "label": "民国言情", "count10w": 0}, {"x": 54.8, "y": 7.0, "r": 4, "label": "游戏体育", "count10w": 0}, {"x": 169.9, "y": 2.6, "r": 7.6, "label": "玄幻言情", "count10w": 2}, {"x": 321.3, "y": 4.2, "r": 20.2, "label": "现言脑洞", "count10w": 9}, {"x": 103.5, "y": 4.5, "r": 5.8, "label": "种田", "count10w": 1}, {"x": 132.8, "y": 9.5, "r": 7.6, "label": "科幻末世", "count10w": 2}, {"x": 173.5, "y": 6.9, "r": 9.4, "label": "职场婚恋", "count10w": 3}, {"x": 526.5, "y": 5.5, "r": 32.8, "label": "豪门总裁", "count10w": 16}, {"x": 271.0, "y": 5.6, "r": 22.0, "label": "青春甜宠", "count10w": 10}], "bookChartData": {"种田": [{"bookId": "7654427669408255000", "label": "盲雌一睁眼，周围全是大佬兽夫", "fullTitle": "盲雌一睁眼，周围全是大佬兽夫", "link": "https://fanqienovel.com/page/7654427669408255000", "data": [2.15, 2.38, 2.57, 3.07, 5.22, 5.26, 5.83], "trend": 3.68, "latest": 5.8, "wordNumber": 170712, "creationStatus": 1, "desc": "【兽世+甜宠+雄多雌少+日常治愈】\r\n一场意外，失明少女颜悦穿越到凶险的蛮荒兽世。\r\n荒草荆棘、古木参天、猛兽蛰伏、弱肉强食……\n为了活下去，颜悦接受了流浪兽的守护。\r\n冷厉寡言的金雕兽人，敛着宽翼护她身后，不动声色撑起安稳；\n温柔细心的熊兽人，将她裹进厚毛怀抱，事事都要操心周全；\n温柔腹黑的灵瞳猫，耳畔低语说尽情话；\n暴躁勇猛的花豹，赤忱心意却从不作假；\n还有双生人鱼，一个心思深沉，肆意逗弄，却句句藏着试探心意；\n一个温顺失语，沉默里尽是死心塌地。\r\n……\r\n兽夫轮番哄宠，蛮荒日子甜到发腻！", "tags": ["种田", "古代言情", "穿越", "兽世", "甜宠", "大佬"], "crossPeriod": true, "borderColor": "#e74c3c", "backgroundColor": "#e74c3c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7637903145187691582", "label": "穿成流放罪臣的恶毒妻", "fullTitle": "穿成流放罪臣的恶毒妻", "link": "https://fanqienovel.com/page/7637903145187691582", "data": [2.41, 3.01, 3.51, 3.93, 5.08, 5.52, 6.06], "trend": 3.65, "latest": 6.1, "wordNumber": 258484, "creationStatus": 0, "desc": "评分低是才开！\n宋知意一睁眼，穿进了一本古言虐文。\n穿成了那个偷光丈夫救命粮、跟押送官私奔、最后被浸猪笼的恶毒妻子。\n身边躺着烧到四十度、伤口发黑的男主——前内阁首辅沈惊寒。\n面前坐着满嘴黄牙、眼神下流的押送官赵虎。\n路边的车前草，她认得。沟渠里的黄芩根，她挖得。\n水缸里的断肠草，她一舔舌尖就辨出来了。\n粥里磨碎的曼陀罗籽？不好意思，她闻得到那股微麻的涩味。\n所有人都在等沈惊寒死在路上。\n而她，拿一根断了头的铜簪当针，扯麻绳当线，就着火光缝了七针。\n没有外挂的普通人，凭什么活到最后？\n凭一双认得药草的眼睛，一颗死也要死得明白的心。", "tags": ["种田", "古代言情", "穿越", "医术", "HE", "1v1"], "crossPeriod": true, "borderColor": "#e91e8c", "backgroundColor": "#e91e8c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7660557904553987134", "label": "重生妹妹抢亲？我换亲嫁糙汉暴富", "fullTitle": "重生妹妹抢亲？我换亲嫁糙汉暴富", "link": "https://fanqienovel.com/page/7660557904553987134", "data": [7.72, 8.39, 9.0, 9.45, 10.64, 10.93, 11.11], "trend": 3.39, "latest": 11.1, "wordNumber": 264984, "creationStatus": 1, "desc": "【穿越】【重生】【换亲】【种田致富】【打脸爽文】【宠妻】【姐妹对照组】【将军】\n前世，妹妹苏雪嫁给军汉年纪轻轻就守了寡，姐姐苏婉嫁给探花郎成了人人羡慕的诰命夫人。\n重生归来，苏雪干的第一件事，就是哭闹着不嫁霍家，抢着要嫁给未来的探花郎许修之，把注定要“早死”的军汉推给了苏婉。\n苏婉微微一笑：抢吧，那家暴男谁要谁拿去！\n她顺水推舟，换亲嫁给霍石安。\n本以为是去当个有钱有闲的快乐小寡妇，谁知她用精神体莲息把糙汉养得生龙活虎，霍石安不仅没死，还一路加官进爵，把她宠上了天！\n而抢走探花郎的妹妹，在许家吃糠咽菜被恶婆婆磋磨，盼着渣男高中，日子越过越差。", "tags": ["种田", "古代言情", "乡村", "宠妻", "发家致富", "代嫁代娶"], "crossPeriod": true, "borderColor": "#9b59b6", "backgroundColor": "#9b59b622", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7648995866363038745", "label": "兽世团宠：幼崽的基建囤货日常", "fullTitle": "兽世团宠：幼崽的基建囤货日常", "link": "https://fanqienovel.com/page/7648995866363038745", "data": [4.1, 4.37, 4.56, 4.66, 5.11, 5.11, 5.16], "trend": 1.06, "latest": 5.2, "wordNumber": 295510, "creationStatus": 1, "desc": "白果在回校的路上，被辆黑车一屁股拱到河里，再睁眼成了被兽人捡回部落的熊猫幼崽。\n白果看着帅气腹黑的银狼哥哥，又看看蠢萌蠢萌的黑狼二哥，觉得也不是不行。\n但住山洞，吃烤肉、野果，她不行她不可。\n白果想改善日常伙食，奈何作为家中最小的幼崽毫无话语权。\n随着一次又一次发现新食物，白果逐渐掌握话语权。\n她背着小竹篓，带着两个哥哥满山跑，挖野菜、收物资、开垦田地。\n山洞潮湿，简陋兽皮棚？没关系，小手手动手搭建坚固石屋。\n食物短缺？不怕，良田万顷，美食管够！\n白果眨着圆溜溜的大眼睛：只是想好好种田搞基建，怎么就成了兽世公认的小大佬啦！", "tags": ["种田", "古代言情", "兽世", "团宠", "大佬", "基建"], "crossPeriod": true, "borderColor": "#f39c12", "backgroundColor": "#f39c1222", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}]}, "recTracks": [{"cat": "玄幻言情", "score": 5, "reasons": ["基本稳定(-1.4万)", "竞争系数低(2.6)", "腰部稳(均腰比1.12)"], "total19": 169.9, "growth": -0.8, "abs_growth": -1.4, "coeff": 2.6, "count10w": 2, "mean": 5.7, "mid19": 5.1, "mm_ratio": 1.12, "ndays": 7}, {"cat": "种田", "score": 5, "reasons": ["基本稳定(-1.4万)", "竞争系数低(4.5)", "腰部稳(均腰比1.39)"], "total19": 103.5, "growth": -1.3, "abs_growth": -1.4, "coeff": 4.5, "count10w": 1, "mean": 3.4, "mid19": 2.5, "mm_ratio": 1.39, "ndays": 7}, {"cat": "古言脑洞", "score": 4, "reasons": ["竞争系数低(3.5)", "腰部稳(均腰比1.19)"], "total19": 101.8, "growth": -17.7, "abs_growth": -21.8, "coeff": 3.5, "count10w": 1, "mean": 3.4, "mid19": 2.8, "mm_ratio": 1.19, "ndays": 7}, {"cat": "女频衍生", "score": 4, "reasons": ["竞争系数低(2.8)", "腰部稳(均腰比1.14)"], "total19": 202.6, "growth": -16.4, "abs_growth": -39.8, "coeff": 2.8, "count10w": 5, "mean": 6.8, "mid19": 5.9, "mm_ratio": 1.14, "ndays": 7}, {"cat": "宫斗宅斗", "score": 4, "reasons": ["竞争系数低(3.0)", "腰部稳(均腰比1.23)"], "total19": 172.8, "growth": -24.6, "abs_growth": -56.4, "coeff": 3.0, "count10w": 4, "mean": 5.8, "mid19": 4.7, "mm_ratio": 1.23, "ndays": 7}, {"cat": "年代", "score": 4, "reasons": ["竞争系数低(4.1)", "腰部稳(均腰比1.23)"], "total19": 200.5, "growth": -25.1, "abs_growth": -67.2, "coeff": 4.1, "count10w": 4, "mean": 6.7, "mid19": 5.4, "mm_ratio": 1.23, "ndays": 7}, {"cat": "快穿", "score": 4, "reasons": ["竞争系数低(2.4)", "腰部稳(均腰比1.23)"], "total19": 231.3, "growth": -15.5, "abs_growth": -42.4, "coeff": 2.4, "count10w": 7, "mean": 7.7, "mid19": 6.2, "mm_ratio": 1.23, "ndays": 7}, {"cat": "悬疑脑洞", "score": 4, "reasons": ["竞争系数低(4.2)", "腰部稳(均腰比1.32)"], "total19": 154.7, "growth": -22.3, "abs_growth": -44.5, "coeff": 4.2, "count10w": 4, "mean": 5.2, "mid19": 3.9, "mm_ratio": 1.32, "ndays": 7}, {"cat": "现言脑洞", "score": 4, "reasons": ["竞争系数低(4.2)", "腰部稳(均腰比1.33)"], "total19": 321.3, "growth": -10.8, "abs_growth": -38.9, "coeff": 4.2, "count10w": 9, "mean": 10.7, "mid19": 8.0, "mm_ratio": 1.33, "ndays": 7}, {"cat": "职场婚恋", "score": 4, "reasons": ["基本稳定(-0.0万)", "竞争系数中(6.9)", "腰部稳(均腰比1.45)"], "total19": 173.5, "growth": -0.0, "abs_growth": -0.0, "coeff": 6.9, "count10w": 3, "mean": 5.8, "mid19": 4.0, "mm_ratio": 1.45, "ndays": 7}, {"cat": "星光璀璨", "score": 3, "reasons": ["竞争系数中(7.7)", "腰部稳(均腰比1.49)"], "total19": 146.3, "growth": -30.2, "abs_growth": -63.4, "coeff": 7.7, "count10w": 3, "mean": 4.9, "mid19": 3.3, "mm_ratio": 1.49, "ndays": 7}, {"cat": "科幻末世", "score": 3, "reasons": ["竞争系数中(9.5)", "腰部稳(均腰比1.52)"], "total19": 132.8, "growth": -10.5, "abs_growth": -15.5, "coeff": 9.5, "count10w": 2, "mean": 4.4, "mid19": 2.9, "mm_ratio": 1.52, "ndays": 7}, {"cat": "豪门总裁", "score": 3, "reasons": ["竞争系数中(5.5)", "腰部稳(均腰比1.65)"], "total19": 526.5, "growth": -14.6, "abs_growth": -89.7, "coeff": 5.5, "count10w": 16, "mean": 17.5, "mid19": 10.6, "mm_ratio": 1.65, "ndays": 7}, {"cat": "青春甜宠", "score": 3, "reasons": ["竞争系数中(5.6)", "腰部稳(均腰比1.62)"], "total19": 271.0, "growth": -18.7, "abs_growth": -62.2, "coeff": 5.6, "count10w": 10, "mean": 9.0, "mid19": 5.6, "mm_ratio": 1.62, "ndays": 7}, {"cat": "民国言情", "score": 2, "reasons": ["7日增长+9.8万", "竞争系数中(9.8)", "腰部中(均腰比2.2)", "体量偏小(41.5万)"], "total19": 41.5, "growth": 31.0, "abs_growth": 9.8, "coeff": 9.8, "count10w": 0, "mean": 1.4, "mid19": 0.6, "mm_ratio": 2.2, "ndays": 7}, {"cat": "游戏体育", "score": 2, "reasons": ["基本稳定(-3.2万)", "竞争系数中(7.0)", "腰部稳(均腰比1.78)", "体量偏小(54.8万)"], "total19": 54.8, "growth": -5.5, "abs_growth": -3.2, "coeff": 7.0, "count10w": 0, "mean": 1.8, "mid19": 1.0, "mm_ratio": 1.78, "ndays": 7}, {"cat": "古风世情", "score": 1, "reasons": ["竞争系数中(5.5)", "腰部稳(均腰比1.42)", "体量偏小(62.6万)"], "total19": 62.6, "growth": -16.1, "abs_growth": -12.0, "coeff": 5.5, "count10w": 0, "mean": 2.1, "mid19": 1.5, "mm_ratio": 1.42, "ndays": 7}, {"cat": "女频悬疑", "score": 1, "reasons": ["竞争系数中(5.3)", "腰部稳(均腰比1.31)", "体量偏小(74.1万)"], "total19": 74.1, "growth": -29.4, "abs_growth": -30.9, "coeff": 5.3, "count10w": 1, "mean": 2.5, "mid19": 1.9, "mm_ratio": 1.31, "ndays": 7}], "metrics": {"古言脑洞": {"total19": 101.8, "growth": -17.7, "abs_growth": -21.8, "coeff": 3.5, "count10w": 1, "mean": 3.4, "mid19": 2.8, "mm_ratio": 1.19, "ndays": 7}, "古风世情": {"total19": 62.6, "growth": -16.1, "abs_growth": -12.0, "coeff": 5.5, "count10w": 0, "mean": 2.1, "mid19": 1.5, "mm_ratio": 1.42, "ndays": 7}, "女频悬疑": {"total19": 74.1, "growth": -29.4, "abs_growth": -30.9, "coeff": 5.3, "count10w": 1, "mean": 2.5, "mid19": 1.9, "mm_ratio": 1.31, "ndays": 7}, "女频衍生": {"total19": 202.6, "growth": -16.4, "abs_growth": -39.8, "coeff": 2.8, "count10w": 5, "mean": 6.8, "mid19": 5.9, "mm_ratio": 1.14, "ndays": 7}, "宫斗宅斗": {"total19": 172.8, "growth": -24.6, "abs_growth": -56.4, "coeff": 3.0, "count10w": 4, "mean": 5.8, "mid19": 4.7, "mm_ratio": 1.23, "ndays": 7}, "年代": {"total19": 200.5, "growth": -25.1, "abs_growth": -67.2, "coeff": 4.1, "count10w": 4, "mean": 6.7, "mid19": 5.4, "mm_ratio": 1.23, "ndays": 7}, "快穿": {"total19": 231.3, "growth": -15.5, "abs_growth": -42.4, "coeff": 2.4, "count10w": 7, "mean": 7.7, "mid19": 6.2, "mm_ratio": 1.23, "ndays": 7}, "悬疑脑洞": {"total19": 154.7, "growth": -22.3, "abs_growth": -44.5, "coeff": 4.2, "count10w": 4, "mean": 5.2, "mid19": 3.9, "mm_ratio": 1.32, "ndays": 7}, "星光璀璨": {"total19": 146.3, "growth": -30.2, "abs_growth": -63.4, "coeff": 7.7, "count10w": 3, "mean": 4.9, "mid19": 3.3, "mm_ratio": 1.49, "ndays": 7}, "民国言情": {"total19": 41.5, "growth": 31.0, "abs_growth": 9.8, "coeff": 9.8, "count10w": 0, "mean": 1.4, "mid19": 0.6, "mm_ratio": 2.2, "ndays": 7}, "游戏体育": {"total19": 54.8, "growth": -5.5, "abs_growth": -3.2, "coeff": 7.0, "count10w": 0, "mean": 1.8, "mid19": 1.0, "mm_ratio": 1.78, "ndays": 7}, "玄幻言情": {"total19": 169.9, "growth": -0.8, "abs_growth": -1.4, "coeff": 2.6, "count10w": 2, "mean": 5.7, "mid19": 5.1, "mm_ratio": 1.12, "ndays": 7}, "现言脑洞": {"total19": 321.3, "growth": -10.8, "abs_growth": -38.9, "coeff": 4.2, "count10w": 9, "mean": 10.7, "mid19": 8.0, "mm_ratio": 1.33, "ndays": 7}, "种田": {"total19": 103.5, "growth": -1.3, "abs_growth": -1.4, "coeff": 4.5, "count10w": 1, "mean": 3.4, "mid19": 2.5, "mm_ratio": 1.39, "ndays": 7}, "科幻末世": {"total19": 132.8, "growth": -10.5, "abs_growth": -15.5, "coeff": 9.5, "count10w": 2, "mean": 4.4, "mid19": 2.9, "mm_ratio": 1.52, "ndays": 7}, "职场婚恋": {"total19": 173.5, "growth": -0.0, "abs_growth": -0.0, "coeff": 6.9, "count10w": 3, "mean": 5.8, "mid19": 4.0, "mm_ratio": 1.45, "ndays": 7}, "豪门总裁": {"total19": 526.5, "growth": -14.6, "abs_growth": -89.7, "coeff": 5.5, "count10w": 16, "mean": 17.5, "mid19": 10.6, "mm_ratio": 1.65, "ndays": 7}, "青春甜宠": {"total19": 271.0, "growth": -18.7, "abs_growth": -62.2, "coeff": 5.6, "count10w": 10, "mean": 9.0, "mid19": 5.6, "mm_ratio": 1.62, "ndays": 7}}},
+  New3:  {"n": 3, "days": ["8月17日", "8月18日", "8月19日"], "rawDays": ["20260817", "20260818", "20260819"], "startLabel": "8月17日", "endLabel": "8月19日", "dateRange": "2026-08-17 ~ 2026-08-19", "nRising": 6, "catTags": {"种田": [{"tag": "古代言情", "count": 13}, {"tag": "乡村", "count": 7}, {"tag": "穿越", "count": 6}, {"tag": "空间", "count": 3}, {"tag": "逃荒", "count": 3}, {"tag": "兽世", "count": 3}, {"tag": "魂穿", "count": 3}, {"tag": "发家致富", "count": 2}, {"tag": "甜宠", "count": 2}, {"tag": "大佬", "count": 2}]}, "overviewDatasets": [{"label": "古言脑洞", "data": [98.0, 103.2, 101.8], "borderColor": "#f39c12", "backgroundColor": "#f39c1222", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "玄幻言情", "data": [161.7, 165.2, 169.9], "borderColor": "#8e44ad", "backgroundColor": "#8e44ad22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "现言脑洞", "data": [321.0, 328.0, 321.3], "borderColor": "#9b59b6", "backgroundColor": "#9b59b622", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "种田", "data": [101.2, 101.2, 103.5], "borderColor": "#2ecc71", "backgroundColor": "#2ecc7122", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "科幻末世", "data": [129.8, 131.6, 132.8], "borderColor": "#16a085", "backgroundColor": "#16a08522", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "职场婚恋", "data": [164.9, 163.8, 173.5], "borderColor": "#2980b9", "backgroundColor": "#2980b922", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}], "growthCats": ["职场婚恋", "玄幻言情", "古言脑洞", "种田", "科幻末世", "现言脑洞", "快穿", "古风世情", "女频悬疑", "年代", "青春甜宠", "民国言情", "女频衍生", "悬疑脑洞", "豪门总裁", "宫斗宅斗", "星光璀璨", "游戏体育"], "growthValues": [5.2, 5.1, 3.8, 2.3, 2.3, 0.1, -0.3, -0.9, -4.8, -5.1, -5.9, -7.6, -9.9, -12.9, -14.2, -17.9, -28.1, -30.8], "growthColors": ["#22c55e", "#22c55e", "#22c55e", "#22c55e", "#22c55e", "#22c55e", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444"], "bubbleData": [{"x": 101.8, "y": 3.5, "r": 5.8, "label": "古言脑洞", "count10w": 1}, {"x": 62.6, "y": 5.5, "r": 4, "label": "古风世情", "count10w": 0}, {"x": 74.1, "y": 5.3, "r": 5.8, "label": "女频悬疑", "count10w": 1}, {"x": 202.6, "y": 2.8, "r": 13.0, "label": "女频衍生", "count10w": 5}, {"x": 172.8, "y": 3.0, "r": 11.2, "label": "宫斗宅斗", "count10w": 4}, {"x": 200.5, "y": 4.1, "r": 11.2, "label": "年代", "count10w": 4}, {"x": 231.3, "y": 2.4, "r": 16.6, "label": "快穿", "count10w": 7}, {"x": 154.7, "y": 4.2, "r": 11.2, "label": "悬疑脑洞", "count10w": 4}, {"x": 146.3, "y": 7.7, "r": 9.4, "label": "星光璀璨", "count10w": 3}, {"x": 41.5, "y": 9.8, "r": 4, "label": "民国言情", "count10w": 0}, {"x": 54.8, "y": 7.0, "r": 4, "label": "游戏体育", "count10w": 0}, {"x": 169.9, "y": 2.6, "r": 7.6, "label": "玄幻言情", "count10w": 2}, {"x": 321.3, "y": 4.2, "r": 20.2, "label": "现言脑洞", "count10w": 9}, {"x": 103.5, "y": 4.5, "r": 5.8, "label": "种田", "count10w": 1}, {"x": 132.8, "y": 9.5, "r": 7.6, "label": "科幻末世", "count10w": 2}, {"x": 173.5, "y": 6.9, "r": 9.4, "label": "职场婚恋", "count10w": 3}, {"x": 526.5, "y": 5.5, "r": 32.8, "label": "豪门总裁", "count10w": 16}, {"x": 271.0, "y": 5.6, "r": 22.0, "label": "青春甜宠", "count10w": 10}], "bookChartData": {"种田": [{"bookId": "7666009416042302488", "label": "断亲后，三岁萌娃带弟搬空全家", "fullTitle": "断亲后，三岁萌娃带弟搬空全家", "link": "https://fanqienovel.com/page/7666009416042302488", "data": [1.87, 2.4, 3.29], "trend": 1.42, "latest": 3.3, "wordNumber": 178595, "creationStatus": 1, "desc": "【古言种田+末世重生+萌娃+空间囤货+逃荒+打脸+护短】\n末世力量与空间双系异能大佬姜禾，一觉醒来，重生成了大楚国边境农家三岁半的小可怜。\n开局就是绝境：亲爹被抓壮丁生死未卜，亲娘难产而亡，极品爷奶为了几斤粗粮，正要把她和刚满月的弟弟卖给牙子！\n姜禾冷笑一声，小手一挥，直接利用空间搬空全家！\n粮仓？收！银钱？收！连极品爷奶睡觉盖的破棉被和厨房的铁锅都一并不留，统统收走！\n连夜断亲，左手抱奶娃弟弟，右手拎着打狗棍，踏上逃荒找爹之路。\n逃荒路上缺衣少食？空间百亿物资随便吃，烤全羊馋哭隔壁流民。\n遇到山匪流氓劫道？三岁奶包一拳干碎青石板，山匪哭着跪地喊奶奶！\n好不容易一路杀到铁血边关，闯进军营，那个传说中杀伐果断、令敌军闻风丧胆的冷面将军，怎么看着那么像她那个便宜爹？\n冷面将军看着一拳把敌军战马锤晕的三岁闺女，陷入了深深的沉思，随后怒吼：“我闺女柔弱不能自理，你们谁敢吓到她，老子砍了他！”\n众将士看着满地找牙的敌军斥候：“将军，您清醒一点……”", "tags": ["种田", "古代言情", "乡村", "空间", "打脸", "逃荒"], "crossPeriod": false, "borderColor": "#e74c3c", "backgroundColor": "#e74c3c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7637903145187691582", "label": "穿成流放罪臣的恶毒妻", "fullTitle": "穿成流放罪臣的恶毒妻", "link": "https://fanqienovel.com/page/7637903145187691582", "data": [5.08, 5.52, 6.06], "trend": 0.99, "latest": 6.1, "wordNumber": 258484, "creationStatus": 0, "desc": "评分低是才开！\n宋知意一睁眼，穿进了一本古言虐文。\n穿成了那个偷光丈夫救命粮、跟押送官私奔、最后被浸猪笼的恶毒妻子。\n身边躺着烧到四十度、伤口发黑的男主——前内阁首辅沈惊寒。\n面前坐着满嘴黄牙、眼神下流的押送官赵虎。\n路边的车前草，她认得。沟渠里的黄芩根，她挖得。\n水缸里的断肠草，她一舔舌尖就辨出来了。\n粥里磨碎的曼陀罗籽？不好意思，她闻得到那股微麻的涩味。\n所有人都在等沈惊寒死在路上。\n而她，拿一根断了头的铜簪当针，扯麻绳当线，就着火光缝了七针。\n没有外挂的普通人，凭什么活到最后？\n凭一双认得药草的眼睛，一颗死也要死得明白的心。", "tags": ["种田", "古代言情", "穿越", "医术", "HE", "1v1"], "crossPeriod": true, "borderColor": "#e91e8c", "backgroundColor": "#e91e8c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7657915664971074584", "label": "穿成农女：带着八个弟弟发家致富", "fullTitle": "穿成农女：带着八个弟弟发家致富", "link": "https://fanqienovel.com/page/7657915664971074584", "data": [2.45, 2.95, 3.31], "trend": 0.87, "latest": 3.3, "wordNumber": 283350, "creationStatus": 1, "desc": "穿越大礼包：\n八个嗷嗷待哺的弟弟，外加一个“种田升级”系统。\n系统说种田能升级——可它没告诉我，种的不是地，是命！\n开局就是地狱模式：娘没了，爹当场咽气。米缸比脸干净，怀里两个奶娃哭得声嘶力竭，眼看就要活活饿死。\n林溪抄起菜刀，连夜闯进爷奶家。\n刀锋抵上亲爷爷的脖子，她笑得比刀还冷：“还我粮食，不然今晚谁也别想见着明天的太阳。”\n叔伯要抢家产、卖她弟弟？她夺回田契，另立门户，却发现所谓的“家底”，只剩一把发霉的谷壳。\n八个弟弟，八张嘴，八份束脩，八个无底洞——\n老二习武要拜师金，老三老四种田要买地，老五经商要本钱，\n老六科举要人脉，老七学医要药材，还有两个嗷嗷待哺的奶娃……\n林溪盯着空米袋，忽然笑了。\n姐有空间。种什么，长什么。\n好不容易把八个崽子拉扯成材，眼看就能躺平养老——却被村里那个沉默寡言的猎户盯上了。\n他堵住她的路，嗓音低沉：“要不，做我媳妇？”\n林溪吓得连夜卷铺盖带弟弟们跑路，却被他一掌摁回墙角，灼热的呼吸喷在她耳畔：\n“八个弟弟太难养……加我一个，行不行？”\n她只想种田搞事业，却不知这个“猎户”是流落在外的皇子，\n皇权倾轧，她该缩回自己的田垄，还是押上全部陪他堵一个天下？", "tags": ["种田", "古代言情", "乡村", "系统", "穿越", "发家致富"], "crossPeriod": false, "borderColor": "#9b59b6", "backgroundColor": "#9b59b622", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7654427669408255000", "label": "盲雌一睁眼，周围全是大佬兽夫", "fullTitle": "盲雌一睁眼，周围全是大佬兽夫", "link": "https://fanqienovel.com/page/7654427669408255000", "data": [5.22, 5.26, 5.83], "trend": 0.61, "latest": 5.8, "wordNumber": 170712, "creationStatus": 1, "desc": "【兽世+甜宠+雄多雌少+日常治愈】\r\n一场意外，失明少女颜悦穿越到凶险的蛮荒兽世。\r\n荒草荆棘、古木参天、猛兽蛰伏、弱肉强食……\n为了活下去，颜悦接受了流浪兽的守护。\r\n冷厉寡言的金雕兽人，敛着宽翼护她身后，不动声色撑起安稳；\n温柔细心的熊兽人，将她裹进厚毛怀抱，事事都要操心周全；\n温柔腹黑的灵瞳猫，耳畔低语说尽情话；\n暴躁勇猛的花豹，赤忱心意却从不作假；\n还有双生人鱼，一个心思深沉，肆意逗弄，却句句藏着试探心意；\n一个温顺失语，沉默里尽是死心塌地。\r\n……\r\n兽夫轮番哄宠，蛮荒日子甜到发腻！", "tags": ["种田", "古代言情", "穿越", "兽世", "甜宠", "大佬"], "crossPeriod": true, "borderColor": "#f39c12", "backgroundColor": "#f39c1222", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7583891851157965848", "label": "生七个娃逃荒？我的马车无限囤货", "fullTitle": "生七个娃逃荒？我的马车无限囤货", "link": "https://fanqienovel.com/page/7583891851157965848", "data": [2.89, 3.12, 3.39], "trend": 0.5, "latest": 3.4, "wordNumber": 265897, "creationStatus": 1, "desc": "【逃荒+天灾+无限空间+无限囤货+灵泉+养七个娃日常+美食+丧尸】\n　　前世，田秋水靠着一辆可以无限囤货、无限扩大的马车，在末世庇护夫家二十余口整整三年！\n　　换来的却是丈夫与好闺蜜暗通款曲，诞下双生子！\n　　恶毒婆婆骂她三岁的亲生女儿是赔钱货，将她推入丧尸潮中！\n　　“你以为你只生了一个女儿吗？你生了七个！当时我们偷偷给你卖了六个！赔钱货要这么多有什么用？”\n　　得知惊天真相对夫家恨之入骨的田秋水再睁眼，她竟回到了末世降临前一个月！\n　　刚生下七胞胎女儿，极品婆家故技重施，想把她刚出生的六个亲生骨肉卖给黑心人贩子换钱？\n　　田秋水冷笑一声，一把生锈的剪刀直接抵住渣夫，“要么滚过来写和离书！要么今天就送你当太监！”\n　　踹翻极品夫家，带着护短的爹娘，和七个绝世宝贝女儿果断跑路！\n　　觉醒【无限囤货马车系统】，一个月内搬空夫家！\n　　一个月后，极寒、酷暑、洪涝、地震、丧尸狂潮接踵而至，人间沦为炼狱。\n　　当渣夫全家在丧尸群里断水断粮、冻饿交加、跪地磕头求她赏一口残羹冷炙时。\n　　田秋水却坐在早已升级成末日堡垒的豪华马车里，抱着七个乖女儿喝羊奶，将马车上刚升级好的火枪大炮对准渣夫全家！", "tags": ["种田", "古代言情", "乡村", "美食", "逃荒", "天灾"], "crossPeriod": false, "borderColor": "#1abc9c", "backgroundColor": "#1abc9c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7660557904553987134", "label": "重生妹妹抢亲？我换亲嫁糙汉暴富", "fullTitle": "重生妹妹抢亲？我换亲嫁糙汉暴富", "link": "https://fanqienovel.com/page/7660557904553987134", "data": [10.64, 10.93, 11.11], "trend": 0.47, "latest": 11.1, "wordNumber": 264984, "creationStatus": 1, "desc": "【穿越】【重生】【换亲】【种田致富】【打脸爽文】【宠妻】【姐妹对照组】【将军】\n前世，妹妹苏雪嫁给军汉年纪轻轻就守了寡，姐姐苏婉嫁给探花郎成了人人羡慕的诰命夫人。\n重生归来，苏雪干的第一件事，就是哭闹着不嫁霍家，抢着要嫁给未来的探花郎许修之，把注定要“早死”的军汉推给了苏婉。\n苏婉微微一笑：抢吧，那家暴男谁要谁拿去！\n她顺水推舟，换亲嫁给霍石安。\n本以为是去当个有钱有闲的快乐小寡妇，谁知她用精神体莲息把糙汉养得生龙活虎，霍石安不仅没死，还一路加官进爵，把她宠上了天！\n而抢走探花郎的妹妹，在许家吃糠咽菜被恶婆婆磋磨，盼着渣男高中，日子越过越差。", "tags": ["种田", "古代言情", "乡村", "宠妻", "发家致富", "代嫁代娶"], "crossPeriod": true, "borderColor": "#3498db", "backgroundColor": "#3498db22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7636305754881788990", "label": "丫鬟反籍，带回两孩子", "fullTitle": "丫鬟反籍，带回两孩子", "link": "https://fanqienovel.com/page/7636305754881788990", "data": [2.77, 2.93, 3.08], "trend": 0.31, "latest": 3.1, "wordNumber": 178506, "creationStatus": 1, "desc": "【种田➕魂穿➕空间➕养娃➕虐渣➕流放➕基建】\n（一时疏忽，打错书名。正确书名:丫鬟返籍，带回两儿子）\n陈幼安投胎失败，魂穿到带着孩子返乡的丫鬟程宁身上。\n回村后，她一心想搞营生糊口，和两个小儿好好在村里苟活。\n奈何，树欲静风不止。\n继奶想把她嫁给鳏夫拿聘金，还想卖掉她的孩子。\n她把继奶和鳏夫扒了衣服关在一屋，共处一室。\n继奶老了老了被休了。\n镇上员外觊觎她的方子，当天员外骑马外出，眉心不知中了何种暗器，当场毙命。\n村长和村长女儿为了悔婚，陷害她和瘸子通奸要把她沉塘？\n村里全员恶人，都想欺负她孤儿寡母。\n既然不让她好过，那就大家都别好过了，她把全村人迷晕，把所有人弄得衣衫凌乱，男男女女垒做一堆，然后敲锣打鼓去报官。\n县官大人一听，全村靡乱？\n他辖下竟然还有风气如此败坏的村子？\n太好了！\n他正愁上官派下来的任务不好完成。\n惊堂木一拍，全村发配边关，成为朝廷新攻下的城池的新移民！\n程宁:“……”\n这，这算不算是搬起石头砸自己的脚了？\n她满脸怨气地收拾东西，准备带着两个小儿迁往边关，那个脸上贴着假疤的假瘸子巴巴贴上来。\n“宁宁，你两儿子缺个爹，你看我合适不？”", "tags": ["种田", "古代言情", "乡村", "空间", "虐渣", "魂穿"], "crossPeriod": false, "borderColor": "#e67e22", "backgroundColor": "#e67e2222", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7653274860671470654", "label": "倒贴崽崽成功后我王炸了", "fullTitle": "倒贴崽崽成功后我王炸了", "link": "https://fanqienovel.com/page/7653274860671470654", "data": [2.54, 2.64, 2.72], "trend": 0.17, "latest": 2.7, "wordNumber": 200841, "creationStatus": 1, "desc": "新作品出炉，希望大家能够喜欢。\n沈轻宁被书中情节感动，心酸不已，醒来莫名穿书了，穿成了抛夫弃子她恨不得捶死的恶毒炮灰。\n依旧走书中的故事情节是不行的，那是断头台，还是该溜的时候溜，该跑的时候跑。\n却又碰上了恨她入骨的前夫冤种，怎么办……\n看在儿子有情有义的份上，要了要了。\n谁知道这儿子矫情，对别人说她是女拐子。她吐了几口浊气。要不是你死前哭那一回太动情，我还懒得要你。\n哄了哄了，使劲倒贴……\n前夫不满意了，恨的牙齿咯吱咯吱响，以前不管儿子死活，自己养大了就说是你儿子了，休想，除非买一送一……\n沈轻宁：要不要都收了，放在后院劈柴干活。\n谁知道前夫大有来头，结果她被放进了后院……\n沈轻宁：不行，我不要待在后院，明明她才是最厉害的那个……\n前夫：乖，别闹，你太漂亮了，出去男人又被你勾引了怎么办，还是待在家里出主意，我来办事。\n儿子：娘，你听爹的准没错……", "tags": ["种田", "古代言情", "乡村", "穿越", "穿书", "魂穿"], "crossPeriod": false, "borderColor": "#27ae60", "backgroundColor": "#27ae6022", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7648995866363038745", "label": "兽世团宠：幼崽的基建囤货日常", "fullTitle": "兽世团宠：幼崽的基建囤货日常", "link": "https://fanqienovel.com/page/7648995866363038745", "data": [5.11, 5.11, 5.16], "trend": 0.04, "latest": 5.2, "wordNumber": 295510, "creationStatus": 1, "desc": "白果在回校的路上，被辆黑车一屁股拱到河里，再睁眼成了被兽人捡回部落的熊猫幼崽。\n白果看着帅气腹黑的银狼哥哥，又看看蠢萌蠢萌的黑狼二哥，觉得也不是不行。\n但住山洞，吃烤肉、野果，她不行她不可。\n白果想改善日常伙食，奈何作为家中最小的幼崽毫无话语权。\n随着一次又一次发现新食物，白果逐渐掌握话语权。\n她背着小竹篓，带着两个哥哥满山跑，挖野菜、收物资、开垦田地。\n山洞潮湿，简陋兽皮棚？没关系，小手手动手搭建坚固石屋。\n食物短缺？不怕，良田万顷，美食管够！\n白果眨着圆溜溜的大眼睛：只是想好好种田搞基建，怎么就成了兽世公认的小大佬啦！", "tags": ["种田", "古代言情", "兽世", "团宠", "大佬", "基建"], "crossPeriod": true, "borderColor": "#8e44ad", "backgroundColor": "#8e44ad22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7641132726757674008", "label": "捡了一个小相公", "fullTitle": "捡了一个小相公", "link": "https://fanqienovel.com/page/7641132726757674008", "data": [2.44, 2.48, 2.47], "trend": 0.03, "latest": 2.5, "wordNumber": 261476, "creationStatus": 1, "desc": "拉着两个行李箱累的跟狗一样的慕桃\n只是因为回头看了一眼，这一眼让她后悔的恨不得弄毁了自己\n莫名其妙捡了个厌世美少年。\n她悉心照料，助他科举入仕，看他步步青云。\n心想摘桃的日子总算到了\n没想到啊\n权倾朝野那日，他温柔抚过她颈间：“桃桃，永远别想离开我。”\n她才惊觉，自己救的哪里是落难美少年，明明是阴鸷狠戾的当朝首辅。\n妈耶……自己才是那个要被摘的桃啊！麻溜滚！\n后来，金銮殿上，新帝看着跪地哭求辞官的权臣愕然。\n男人眼尾泛红，嗓音嘶哑：“臣要归家……臣的妻，丢了。”\n看着哭的梨花带雨的权臣，新帝一阵骂娘，这个男人这么会哭的吗?", "tags": ["种田", "古代言情", "科举", "追妻火葬场", "破镜重圆", "情有独钟", "契约婚姻"], "crossPeriod": false, "borderColor": "#f1c40f", "backgroundColor": "#f1c40f22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7657078209531350041", "label": "穿成瘸妻，糙汉一路背我千里逃荒", "fullTitle": "穿成瘸妻，糙汉一路背我千里逃荒", "link": "https://fanqienovel.com/page/7657078209531350041", "data": [1.77, 1.71, 1.79], "trend": 0.02, "latest": 1.8, "wordNumber": 265685, "creationStatus": 1, "desc": "温四月一睁眼，穿成了逃荒路上瘸了腿的小媳妇。\n土墙、吃人、被扒衣裳，开局就差没写个“死”字。\n一个站不起来的废物，在这个人吃人的世道里，活着就是浪费粮食。\n所有人都等着看她什么时候咽气。\n偏偏那个糙得不会说一句软话的猎户相公，把她背上了逃荒路，他护她周全，替她出头，对她无微不至。\n逃荒路上，她开灵泉养人，他提刀护家。从两手空空的流民，到有了自己的田地、自己的寨子、自己的军队。", "tags": ["种田", "古代言情", "穿越", "空间", "逃荒", "魂穿"], "crossPeriod": false, "borderColor": "#16a085", "backgroundColor": "#16a08522", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7654779071276010520", "label": "夫君战死五年归来：我携婆家出族", "fullTitle": "夫君战死五年归来：我携婆家出族", "link": "https://fanqienovel.com/page/7654779071276010520", "data": [2.07, 2.08, 2.09], "trend": 0.02, "latest": 2.1, "wordNumber": 201838, "creationStatus": 1, "desc": "【女强+团宠+萌宝+绝不回头+加破案+微科举】\n刚升为公安局长的林玉娘穿越了，刚成亲三天，夫君裴元骏就被征兵去了战场，不到三个月就传来了夫君战死的消息。\n这时，林玉娘发现自己怀孕了，前世活了三十多年，连个男人的手都没牵过，这才多久，她肚子里已经喘着娃了。\n裴家父母和小叔子、小姑子都对她很好，不久她就生了一对龙凤胎。\n不光养活了裴家一家人，还送小叔子去书院读书，送小姑子去学刺绣的手艺。\n就连自己生的一对双胞胎她也给他们请了启蒙的夫子，村里人人羡慕裴家娶了一个能干又孝顺的儿媳，可惜是个命苦的。就当日子越来越好时，那个战死五年的夫君成了将军回来了，见面就要和离，林玉娘根本就不在乎这个夫君，只要不和她抢孩子，和离就和离，可让她没想到的是，裴家父母和小叔子、小姑子为她打抱不平，既然说不通，那就把儿子逐出族谱，断绝父子关系。可人家已经是正三品的大将军，族长不同意把他逐出族谱，公爹下定决心，带着他们一家自请出族，小叔子中状元，裴元骏使手段，把他贬到黄县为县令，黄县是整个大同最贫困的县，在叔嫂两人的治理下，成了整个大同最富裕的县。只是那个被贬的皇子天天来串门是怎么回事儿？\n", "tags": ["种田", "古代言情", "乡村", "萌宝", "女强", "科举"], "crossPeriod": false, "borderColor": "#2ecc71", "backgroundColor": "#2ecc7122", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7651124284554759192", "label": "兽世开荒：小怂包娇娇成团宠了", "fullTitle": "兽世开荒：小怂包娇娇成团宠了", "link": "https://fanqienovel.com/page/7651124284554759192", "data": [2.01, 2.0, 2.02], "trend": 0.01, "latest": 2.0, "wordNumber": 268149, "creationStatus": 1, "desc": "【兽世】【小怂包】【甜宠】【生存】\n苏妙斥巨资办了998游泳卡，只上一节课，一睁眼穿越蛮荒兽世。\n她被族长指派给一头性情暴戾的守护兽，受尽冷待磋磨，最后竟被狠心丢弃在荒林等死。\n濒临绝境之际，数名颜值逆天的兽夫踏光而来。\n为首的君泽眸光缱绻，满心疼惜：“这般软糯小雌性，他不疼，我来疼。”\n从前人人嫌弃、受尽委屈的小苦瓜，一朝得兽神眷顾，坐拥一众神颜兽夫。\n开荒觅食、抵御凶兽、搭建暖巢，全员把她捧在心尖娇养。\n从前受尽冷眼的小怂包，终究在蛮荒绝境里，被偏爱裹成独一无二的团宠。", "tags": ["种田", "古代言情", "穿越", "兽世", "团宠", "甜宠"], "crossPeriod": false, "borderColor": "#95a5a6", "backgroundColor": "#95a5a622", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}]}, "recTracks": [{"cat": "古言脑洞", "score": 6, "reasons": ["3日增长+3.8万", "竞争系数低(3.5)", "腰部稳(均腰比1.19)"], "total19": 101.8, "growth": 3.8, "abs_growth": 3.8, "coeff": 3.5, "count10w": 1, "mean": 3.4, "mid19": 2.8, "mm_ratio": 1.19, "ndays": 3}, {"cat": "玄幻言情", "score": 6, "reasons": ["3日增长+8.2万", "竞争系数低(2.6)", "腰部稳(均腰比1.12)"], "total19": 169.9, "growth": 5.1, "abs_growth": 8.2, "coeff": 2.6, "count10w": 2, "mean": 5.7, "mid19": 5.1, "mm_ratio": 1.12, "ndays": 3}, {"cat": "现言脑洞", "score": 6, "reasons": ["3日增长+0.3万", "竞争系数低(4.2)", "腰部稳(均腰比1.33)"], "total19": 321.3, "growth": 0.1, "abs_growth": 0.3, "coeff": 4.2, "count10w": 9, "mean": 10.7, "mid19": 8.0, "mm_ratio": 1.33, "ndays": 3}, {"cat": "种田", "score": 6, "reasons": ["3日增长+2.3万", "竞争系数低(4.5)", "腰部稳(均腰比1.39)"], "total19": 103.5, "growth": 2.3, "abs_growth": 2.3, "coeff": 4.5, "count10w": 1, "mean": 3.4, "mid19": 2.5, "mm_ratio": 1.39, "ndays": 3}, {"cat": "快穿", "score": 5, "reasons": ["基本稳定(-0.7万)", "竞争系数低(2.4)", "腰部稳(均腰比1.23)"], "total19": 231.3, "growth": -0.3, "abs_growth": -0.7, "coeff": 2.4, "count10w": 7, "mean": 7.7, "mid19": 6.2, "mm_ratio": 1.23, "ndays": 3}, {"cat": "科幻末世", "score": 5, "reasons": ["3日增长+3.0万", "竞争系数中(9.5)", "腰部稳(均腰比1.52)"], "total19": 132.8, "growth": 2.3, "abs_growth": 3.0, "coeff": 9.5, "count10w": 2, "mean": 4.4, "mid19": 2.9, "mm_ratio": 1.52, "ndays": 3}, {"cat": "职场婚恋", "score": 5, "reasons": ["3日增长+8.6万", "竞争系数中(6.9)", "腰部稳(均腰比1.45)"], "total19": 173.5, "growth": 5.2, "abs_growth": 8.6, "coeff": 6.9, "count10w": 3, "mean": 5.8, "mid19": 4.0, "mm_ratio": 1.45, "ndays": 3}, {"cat": "女频衍生", "score": 4, "reasons": ["竞争系数低(2.8)", "腰部稳(均腰比1.14)"], "total19": 202.6, "growth": -9.9, "abs_growth": -22.1, "coeff": 2.8, "count10w": 5, "mean": 6.8, "mid19": 5.9, "mm_ratio": 1.14, "ndays": 3}, {"cat": "宫斗宅斗", "score": 4, "reasons": ["竞争系数低(3.0)", "腰部稳(均腰比1.23)"], "total19": 172.8, "growth": -17.9, "abs_growth": -37.7, "coeff": 3.0, "count10w": 4, "mean": 5.8, "mid19": 4.7, "mm_ratio": 1.23, "ndays": 3}, {"cat": "年代", "score": 4, "reasons": ["竞争系数低(4.1)", "腰部稳(均腰比1.23)"], "total19": 200.5, "growth": -5.1, "abs_growth": -10.7, "coeff": 4.1, "count10w": 4, "mean": 6.7, "mid19": 5.4, "mm_ratio": 1.23, "ndays": 3}, {"cat": "悬疑脑洞", "score": 4, "reasons": ["竞争系数低(4.2)", "腰部稳(均腰比1.32)"], "total19": 154.7, "growth": -12.9, "abs_growth": -22.8, "coeff": 4.2, "count10w": 4, "mean": 5.2, "mid19": 3.9, "mm_ratio": 1.32, "ndays": 3}, {"cat": "星光璀璨", "score": 3, "reasons": ["竞争系数中(7.7)", "腰部稳(均腰比1.49)"], "total19": 146.3, "growth": -28.1, "abs_growth": -57.2, "coeff": 7.7, "count10w": 3, "mean": 4.9, "mid19": 3.3, "mm_ratio": 1.49, "ndays": 3}, {"cat": "豪门总裁", "score": 3, "reasons": ["竞争系数中(5.5)", "腰部稳(均腰比1.65)"], "total19": 526.5, "growth": -14.2, "abs_growth": -86.8, "coeff": 5.5, "count10w": 16, "mean": 17.5, "mid19": 10.6, "mm_ratio": 1.65, "ndays": 3}, {"cat": "青春甜宠", "score": 3, "reasons": ["竞争系数中(5.6)", "腰部稳(均腰比1.62)"], "total19": 271.0, "growth": -5.9, "abs_growth": -16.9, "coeff": 5.6, "count10w": 10, "mean": 9.0, "mid19": 5.6, "mm_ratio": 1.62, "ndays": 3}, {"cat": "古风世情", "score": 2, "reasons": ["基本稳定(-0.6万)", "竞争系数中(5.5)", "腰部稳(均腰比1.42)", "体量偏小(62.6万)"], "total19": 62.6, "growth": -0.9, "abs_growth": -0.6, "coeff": 5.5, "count10w": 0, "mean": 2.1, "mid19": 1.5, "mm_ratio": 1.42, "ndays": 3}, {"cat": "女频悬疑", "score": 2, "reasons": ["基本稳定(-3.7万)", "竞争系数中(5.3)", "腰部稳(均腰比1.31)", "体量偏小(74.1万)"], "total19": 74.1, "growth": -4.8, "abs_growth": -3.7, "coeff": 5.3, "count10w": 1, "mean": 2.5, "mid19": 1.9, "mm_ratio": 1.31, "ndays": 3}, {"cat": "民国言情", "score": 1, "reasons": ["基本稳定(-3.4万)", "竞争系数中(9.8)", "腰部中(均腰比2.2)", "体量偏小(41.5万)"], "total19": 41.5, "growth": -7.6, "abs_growth": -3.4, "coeff": 9.8, "count10w": 0, "mean": 1.4, "mid19": 0.6, "mm_ratio": 2.2, "ndays": 3}, {"cat": "游戏体育", "score": 1, "reasons": ["竞争系数中(7.0)", "腰部稳(均腰比1.78)", "体量偏小(54.8万)"], "total19": 54.8, "growth": -30.8, "abs_growth": -24.3, "coeff": 7.0, "count10w": 0, "mean": 1.8, "mid19": 1.0, "mm_ratio": 1.78, "ndays": 3}], "metrics": {"古言脑洞": {"total19": 101.8, "growth": 3.8, "abs_growth": 3.8, "coeff": 3.5, "count10w": 1, "mean": 3.4, "mid19": 2.8, "mm_ratio": 1.19, "ndays": 3}, "古风世情": {"total19": 62.6, "growth": -0.9, "abs_growth": -0.6, "coeff": 5.5, "count10w": 0, "mean": 2.1, "mid19": 1.5, "mm_ratio": 1.42, "ndays": 3}, "女频悬疑": {"total19": 74.1, "growth": -4.8, "abs_growth": -3.7, "coeff": 5.3, "count10w": 1, "mean": 2.5, "mid19": 1.9, "mm_ratio": 1.31, "ndays": 3}, "女频衍生": {"total19": 202.6, "growth": -9.9, "abs_growth": -22.1, "coeff": 2.8, "count10w": 5, "mean": 6.8, "mid19": 5.9, "mm_ratio": 1.14, "ndays": 3}, "宫斗宅斗": {"total19": 172.8, "growth": -17.9, "abs_growth": -37.7, "coeff": 3.0, "count10w": 4, "mean": 5.8, "mid19": 4.7, "mm_ratio": 1.23, "ndays": 3}, "年代": {"total19": 200.5, "growth": -5.1, "abs_growth": -10.7, "coeff": 4.1, "count10w": 4, "mean": 6.7, "mid19": 5.4, "mm_ratio": 1.23, "ndays": 3}, "快穿": {"total19": 231.3, "growth": -0.3, "abs_growth": -0.7, "coeff": 2.4, "count10w": 7, "mean": 7.7, "mid19": 6.2, "mm_ratio": 1.23, "ndays": 3}, "悬疑脑洞": {"total19": 154.7, "growth": -12.9, "abs_growth": -22.8, "coeff": 4.2, "count10w": 4, "mean": 5.2, "mid19": 3.9, "mm_ratio": 1.32, "ndays": 3}, "星光璀璨": {"total19": 146.3, "growth": -28.1, "abs_growth": -57.2, "coeff": 7.7, "count10w": 3, "mean": 4.9, "mid19": 3.3, "mm_ratio": 1.49, "ndays": 3}, "民国言情": {"total19": 41.5, "growth": -7.6, "abs_growth": -3.4, "coeff": 9.8, "count10w": 0, "mean": 1.4, "mid19": 0.6, "mm_ratio": 2.2, "ndays": 3}, "游戏体育": {"total19": 54.8, "growth": -30.8, "abs_growth": -24.3, "coeff": 7.0, "count10w": 0, "mean": 1.8, "mid19": 1.0, "mm_ratio": 1.78, "ndays": 3}, "玄幻言情": {"total19": 169.9, "growth": 5.1, "abs_growth": 8.2, "coeff": 2.6, "count10w": 2, "mean": 5.7, "mid19": 5.1, "mm_ratio": 1.12, "ndays": 3}, "现言脑洞": {"total19": 321.3, "growth": 0.1, "abs_growth": 0.3, "coeff": 4.2, "count10w": 9, "mean": 10.7, "mid19": 8.0, "mm_ratio": 1.33, "ndays": 3}, "种田": {"total19": 103.5, "growth": 2.3, "abs_growth": 2.3, "coeff": 4.5, "count10w": 1, "mean": 3.4, "mid19": 2.5, "mm_ratio": 1.39, "ndays": 3}, "科幻末世": {"total19": 132.8, "growth": 2.3, "abs_growth": 3.0, "coeff": 9.5, "count10w": 2, "mean": 4.4, "mid19": 2.9, "mm_ratio": 1.52, "ndays": 3}, "职场婚恋": {"total19": 173.5, "growth": 5.2, "abs_growth": 8.6, "coeff": 6.9, "count10w": 3, "mean": 5.8, "mid19": 4.0, "mm_ratio": 1.45, "ndays": 3}, "豪门总裁": {"total19": 526.5, "growth": -14.2, "abs_growth": -86.8, "coeff": 5.5, "count10w": 16, "mean": 17.5, "mid19": 10.6, "mm_ratio": 1.65, "ndays": 3}, "青春甜宠": {"total19": 271.0, "growth": -5.9, "abs_growth": -16.9, "coeff": 5.6, "count10w": 10, "mean": 9.0, "mid19": 5.6, "mm_ratio": 1.62, "ndays": 3}}},
+  Read7: {"n": 7, "days": ["8月11日", "8月12日", "8月13日", "8月14日", "8月17日", "8月18日", "8月19日"], "rawDays": ["20260811", "20260812", "20260813", "20260814", "20260817", "20260818", "20260819"], "startLabel": "8月11日", "endLabel": "8月19日", "dateRange": "2026-08-11 ~ 2026-08-19", "nRising": 10, "catTags": {"种田": [{"tag": "古代言情", "count": 14}, {"tag": "乡村", "count": 7}, {"tag": "穿越", "count": 7}, {"tag": "空间", "count": 5}, {"tag": "发家致富", "count": 4}, {"tag": "医术", "count": 3}, {"tag": "萌宝", "count": 2}, {"tag": "无CP", "count": 2}, {"tag": "古色古香", "count": 2}, {"tag": "团宠", "count": 2}]}, "overviewDatasets": [{"label": "古言脑洞", "data": [584.1, 587.4, 592.7, 600.0, 636.9, 657.3, 630.5], "borderColor": "#f39c12", "backgroundColor": "#f39c1222", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "女频悬疑", "data": [228.3, 226.9, 228.4, 237.0, 251.0, 251.1, 250.7], "borderColor": "#95a5a6", "backgroundColor": "#95a5a622", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "女频衍生", "data": [187.6, 186.3, 186.0, 184.3, 192.2, 209.7, 215.6], "borderColor": "#d35400", "backgroundColor": "#d3540022", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "宫斗宅斗", "data": [710.5, 700.8, 692.6, 686.9, 700.6, 728.4, 737.3], "borderColor": "#e67e22", "backgroundColor": "#e67e2222", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "年代", "data": [803.1, 808.6, 812.7, 813.1, 798.7, 801.6, 804.4], "borderColor": "#27ae60", "backgroundColor": "#27ae6022", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "快穿", "data": [462.8, 467.2, 475.2, 483.1, 510.4, 515.2, 507.1], "borderColor": "#3498db", "backgroundColor": "#3498db22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "星光璀璨", "data": [434.9, 456.3, 429.2, 427.0, 424.0, 467.4, 468.6], "borderColor": "#f1c40f", "backgroundColor": "#f1c40f22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "现言脑洞", "data": [821.5, 821.8, 827.3, 832.2, 903.6, 911.2, 918.0], "borderColor": "#9b59b6", "backgroundColor": "#9b59b622", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "种田", "data": [623.3, 619.1, 625.1, 633.5, 660.6, 669.9, 677.2], "borderColor": "#2ecc71", "backgroundColor": "#2ecc7122", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "豪门总裁", "data": [1134.2, 1124.9, 1112.7, 1109.2, 1101.7, 1152.9, 1141.6], "borderColor": "#e74c3c", "backgroundColor": "#e74c3c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}], "growthCats": ["女频衍生", "现言脑洞", "女频悬疑", "快穿", "种田", "古言脑洞", "星光璀璨", "宫斗宅斗", "豪门总裁", "年代", "青春甜宠", "民国言情", "职场婚恋", "古风世情", "科幻末世", "玄幻言情", "悬疑脑洞", "游戏体育"], "growthValues": [14.9, 11.8, 9.8, 9.6, 8.6, 7.9, 7.8, 3.8, 0.6, 0.2, -2.3, -2.4, -3.3, -3.4, -3.4, -5.0, -5.1, -24.3], "growthColors": ["#22c55e", "#22c55e", "#22c55e", "#22c55e", "#22c55e", "#22c55e", "#22c55e", "#22c55e", "#22c55e", "#22c55e", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444"], "bubbleData": [{"x": 630.5, "y": 3.5, "r": 58.0, "label": "古言脑洞", "count10w": 30}, {"x": 346.9, "y": 3.5, "r": 27.400000000000002, "label": "古风世情", "count10w": 13}, {"x": 250.7, "y": 2.8, "r": 16.6, "label": "女频悬疑", "count10w": 7}, {"x": 215.6, "y": 3.2, "r": 11.2, "label": "女频衍生", "count10w": 4}, {"x": 737.3, "y": 4.0, "r": 58.0, "label": "宫斗宅斗", "count10w": 30}, {"x": 804.4, "y": 1.9, "r": 58.0, "label": "年代", "count10w": 30}, {"x": 507.1, "y": 2.3, "r": 58.0, "label": "快穿", "count10w": 30}, {"x": 423.7, "y": 5.7, "r": 34.6, "label": "悬疑脑洞", "count10w": 17}, {"x": 468.6, "y": 9.3, "r": 29.2, "label": "星光璀璨", "count10w": 14}, {"x": 163.8, "y": 11.0, "r": 11.2, "label": "民国言情", "count10w": 4}, {"x": 456.6, "y": 52.2, "r": 18.4, "label": "游戏体育", "count10w": 8}, {"x": 890.8, "y": 5.3, "r": 58.0, "label": "玄幻言情", "count10w": 30}, {"x": 918.0, "y": 3.5, "r": 58.0, "label": "现言脑洞", "count10w": 30}, {"x": 677.2, "y": 3.6, "r": 58.0, "label": "种田", "count10w": 30}, {"x": 440.3, "y": 2.6, "r": 41.800000000000004, "label": "科幻末世", "count10w": 21}, {"x": 465.3, "y": 4.6, "r": 40.0, "label": "职场婚恋", "count10w": 20}, {"x": 1141.6, "y": 2.3, "r": 58.0, "label": "豪门总裁", "count10w": 30}, {"x": 847.2, "y": 3.4, "r": 58.0, "label": "青春甜宠", "count10w": 30}], "bookChartData": {"种田": [{"bookId": "7595102903841344537", "label": "崽崽荷包通两界，荒村变成桃花源", "fullTitle": "崽崽荷包通两界，荒村变成桃花源", "link": "https://fanqienovel.com/page/7595102903841344537", "data": [29.22, 30.11, 31.1, 32.27, 37.56, 38.74, 39.65], "trend": 10.43, "latest": 39.7, "wordNumber": 944335, "creationStatus": 1, "desc": "【种田+古今穿越+萌宝+温馨经营（日常向，无cp)】\n\n五岁芽芽的破荷包能通现代。\n\n从捡垃圾堆里半个卤蛋开始，到发现野菜在现代价比黄金。\n\n从捡拾到交换，从求生到经营。\n\n她背着小背篓穿梭两界，从一颗卤蛋到满仓粮食，从濒临绝境到炊烟袅袅。\n\n山还是那座山，日子却一天天有了滋味。", "tags": ["种田", "古代言情", "乡村", "萌宝", "穿越", "无CP"], "crossPeriod": true, "borderColor": "#e74c3c", "backgroundColor": "#e74c3c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7519959894917647422", "label": "穿成恶婆婆后，儿媳抢着给我养老", "fullTitle": "穿成恶婆婆后，儿媳抢着给我养老", "link": "https://fanqienovel.com/page/7519959894917647422", "data": [13.89, 13.28, 12.22, 12.82, 16.18, 18.13, 19.89], "trend": 6.0, "latest": 19.9, "wordNumber": 726421, "creationStatus": 0, "desc": "已完结，短剧已上线，欢迎收看。（无cp！种田+空间+家长里短（微群像）+发家致富+爽文+医术） \n注：新书字数少评分低正常，会慢慢涨的哟～\n医学博士吴玉兰猝死后，魂穿成了个刻薄尖酸的恶毒老太。\n　吴老太恶毒是出了名，磋磨儿媳，买卖孙女，啥腌臜事儿都干得出来。\n　　四个儿子，除了小儿子，其余都是干活的牛马。\n　　为了让小儿子吃上肉，冬日让大儿子上山打猎，害的大儿子差点被猛兽咬死；\n　　为了让小儿子念上书，夏日送二儿子去修河道，害的二儿子差点累死；\n　　为了给小儿子铺路，还把摔断腿的三儿子送去边关，害的三儿子差点战死。\n　　可某一天，吴老太变了......\n　　她不再宠溺小儿子，不受待见的孙女也被她挨个赎回。\n　　宋知康知晓妻子生产，千里迢迢赶回来，本以为妻子会被偏心母亲折磨得不成人样。\n　　结果让他傻眼......\n　　妻子面色红润，人胖了一圈。\n　　刚出生的女儿更是被养的胖嘟嘟，小手跟藕段似的肉嘟嘟。\n　　再看家中其他女眷，一个个丰圆玉润，悠闲的在廊下绣花。\n　　而他那恶毒老娘，正挥着大扫帚，追着她最疼爱的四儿子打。\n　　我的老天，这还是我家吗？", "tags": ["种田", "古代言情", "穿越", "空间", "医术", "发家致富"], "crossPeriod": true, "borderColor": "#e91e8c", "backgroundColor": "#e91e8c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7617458520832609305", "label": "旺家小福女", "fullTitle": "旺家小福女", "link": "https://fanqienovel.com/page/7617458520832609305", "data": [24.66, 25.38, 25.73, 26.55, 30.01, 30.5, 30.62], "trend": 5.95, "latest": 30.6, "wordNumber": 979264, "creationStatus": 1, "desc": "穿越？重生？都没有。林小满只是一个古代农家普通小丫头。\n\n被后娘推进冰窟窿那天，她以为自己死定了。是隔壁的张婶子把她捞起来，带回了家。“从今往后，你就是我李家的闺女！”\n\n李家穷的住破屋烂瓦，吃野菜糊糊粥，没想到自打她来了，李家就跟开了光似的——栗子捡不完、赏银从天降、老宅挖出存钱罐、烧炭赶上官府收购……日子越过越红火，三个哥哥也进了学堂。\n\n李家人都说她是福星，可林小满知道：哪有什么福星，不过是老天爷可怜她，给了她一双能看见明天的眼睛。", "tags": ["种田", "古代言情", "乡村", "幻想言情", "发家致富", "古色古香"], "crossPeriod": true, "borderColor": "#9b59b6", "backgroundColor": "#9b59b622", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "6849391701497220109", "label": "农家团宠娇娇女", "fullTitle": "农家团宠娇娇女", "link": "https://fanqienovel.com/page/6849391701497220109", "data": [13.81, 15.41, 16.42, 17.26, 18.9, 19.25, 19.23], "trend": 5.43, "latest": 19.2, "wordNumber": 1459545, "creationStatus": 0, "desc": "糖宝没了爹娘，亲戚都不愿意养，说她克人。\n拥有七个孙子的杨老太为凑齐八（谐音“发”），把糖宝领回了家。\n人人都说杨家养糖宝这下要倒霉了，可杨家不仅没倒霉，还成了大周新贵！\n就是杨家人脾气不好，一有人说糖宝克人，杨老二就瞪眼：哪个不要命的说我闺女克人？\n杨老太最牛逼，抽出一根绳子跑到人家：说你自个克人，不说我就吊死在你家。\n杨家七个孙子围着糖宝：妹妹吃糖。\n糖宝：耶？我是来凑数的呀，怎么凑成了人人疼爱的小宝贝？", "tags": ["种田", "古代言情", "团宠", "古灵精怪", "甜宠", "发家致富"], "crossPeriod": true, "borderColor": "#f39c12", "backgroundColor": "#f39c1222", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7517953139266309144", "label": "恶毒前妻再就业，汴京第一妙厨娘", "fullTitle": "恶毒前妻再就业，汴京第一妙厨娘", "link": "https://fanqienovel.com/page/7517953139266309144", "data": [17.18, 18.29, 19.26, 20.11, 22.5, 22.45, 21.67], "trend": 4.49, "latest": 21.7, "wordNumber": 610669, "creationStatus": 1, "desc": "【1v1双洁+穿书+美食+经营+日常向】\n一睁眼，叶昭昭穿成了权臣文男主的恶毒前妻。\n在书中，原主做梦都想当官夫人。\n她使尽浑身解数嫁给男主，却在男主官职被一撸到底后，不顾男主和孩子的挽留，和离回到了扬州老家，二嫁给了青梅竹马。\n只是不到一年。\n竹马就转手将原主送给上峰做礼。\n原主逃出来，辗转回到汴京，却发现新帝登基，男主一朝翻身、敕封摄政王，誉满汴京。\n原主这个前妻也变得人人喊打，最后被擅作主张的下人活生生饿死在了柴房里。\n穿书后的叶昭昭，当然不想重蹈覆辙。\n放着现成的幸福生活不要，非要回什么扬州投奔青梅竹马？\n她脑子又没进水，分得清好赖。\n小姑子难缠小叔子阴郁；\n不愁，她苦练高情商，应付两个半大孩子还不容易？\n男主颓废潦倒家里入不敷出；\n不怕，她有厨艺傍身，能眼睁睁看着丈夫孩子饿死？\n只是，她的汴京小食肆开业的那一日，怎么全汴京的权贵都来捧她的场了？\n说好的全家低谷三年、人人可欺呢？\n流水的银子哗啦啦地进账，这哪里用得着吃苦头呀！\n原本麻木沉郁的男主更是将叶昭昭视若珍宝，全家人的日子也越过越好。", "tags": ["种田", "古代言情", "美食", "穿书", "双洁", "1v1"], "crossPeriod": false, "borderColor": "#1abc9c", "backgroundColor": "#1abc9c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7313444102157126718", "label": "穿成疯娘：别怕，好日子在后头", "fullTitle": "穿成疯娘：别怕，好日子在后头", "link": "https://fanqienovel.com/page/7313444102157126718", "data": [15.67, 16.08, 16.86, 17.66, 19.24, 19.77, 20.08], "trend": 4.41, "latest": 20.1, "wordNumber": 1037352, "creationStatus": 0, "desc": "武力值满满女主+勤劳致富\n周琼不过是下水救人，哪个知道这一落水她便从一个现代好青年变成了古代见人就咬的疯妇一名，\n好在只有疯娘没有疯爹，看着两个孤苦懂事却备受生活折磨的孩子，她心中隐痛，不就是当娘，她定要让孩子们吃饱穿暖，成为村里人人羡慕的对象。\n只是这头刚建设好小家，村子也因为她日渐温饱，却因为疯妇身世的原因突发意外一朝回到了解放前。\n老天啊，这是在考验她的能耐吗，不就是重来，到哪里她都是那个能把日子过得蒸蒸日上的人！", "tags": ["种田", "古代言情", "乡村", "萌宝", "穿越"], "crossPeriod": true, "borderColor": "#3498db", "backgroundColor": "#3498db22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7545324289256328216", "label": "想兼祧两房？搬空家产带儿女和离", "fullTitle": "想兼祧两房？搬空家产带儿女和离", "link": "https://fanqienovel.com/page/7545324289256328216", "data": [27.74, 27.41, 27.19, 27.88, 30.12, 30.78, 31.72], "trend": 3.98, "latest": 31.7, "wordNumber": 1152924, "creationStatus": 0, "desc": "【有空间，不是双洁，女主懂医术。】\n末世摸爬滚打多年的乔念，带着空间穿越到古代，一个穷秀才的妻子。\n刚睁眼，龙凤胎儿女面临被卖，乔念凭借自己的武力夺回孩子。\n成亲五年的秀才相公不回家？\n她带着孩子找过去。\n结果却发现，丈夫和寡嫂在城里，小日子过得风生水起，连儿子都生了俩。\n乔念一去，大杀四方，胖揍狗男女，搬空婆家所有财物。\n和离后，带着娘家人赚得盆满钵满。\n乔念变得越来越漂亮，肤白貌美又多金，渣前夫肠子都悔青了。\n他厚着脸皮上门求和，被乔念一脚踢出门。\n渣男有多远给我滚多远……", "tags": ["种田", "古代言情", "穿越", "空间", "医术", "发家致富"], "crossPeriod": true, "borderColor": "#e67e22", "backgroundColor": "#e67e2222", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7546430467558345752", "label": "全家提前两年囤货，逃荒吃香喝辣", "fullTitle": "全家提前两年囤货，逃荒吃香喝辣", "link": "https://fanqienovel.com/page/7546430467558345752", "data": [12.07, 12.58, 12.92, 13.23, 14.8, 15.28, 15.42], "trend": 3.34, "latest": 15.4, "wordNumber": 1446794, "creationStatus": 1, "desc": "【空间+赶山找山货+草药野果野菜真实配图+家长里短+逃荒+群像+囤货+虐渣+无CP]\t\n（又名：全家提前两年囤货，逃荒吃香喝辣）\n李杏儿做了一个奇怪的预知梦，她梦见自己十八代祖宗正在被屠杀。\n她必须穿越过去拯救自己的老祖宗。\n不然后世的她会因为蝴蝶反应消失，没想到老祖宗的魂在地府把人都求遍了，上天才给她十天同时又获得灵泉空间和千万存款。\n她迅速开启买买买囤货模式。\n十天过去，她买好物资穿定时越到古代池州杏花村。\n没想到穿早了，距离可怕的荒年还有两年。\n李杏儿发誓带着一空间物资要在古代过上好日。\n...\n谁都没想到。\n李杏儿穿越后变成大力女，一身武力值超高。\n她拳打野猪，脚踢恶霸，别人不敢去的禁山是她的粮仓，山珍野味随便捡。\n穿越后的春耕她利用现代化种子种出千斤粮食，搞出惊人的大丰收，带全家疯狂囤货。\n两年后。\n地震，火山爆发，蝗灾，瘟疫如期而至。杏花村全村人却没个怕的。\n因为地窖堆满粮食，杏儿带着村民们逃荒路上底气嘎嘎强!", "tags": ["种田", "古代言情", "空间", "逃荒", "群像", "无CP", "虐渣", "囤物资"], "crossPeriod": true, "borderColor": "#27ae60", "backgroundColor": "#27ae6022", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7615591201386810393", "label": "穿越农女断亲，有空间天天吃肉！", "fullTitle": "穿越农女断亲，有空间天天吃肉！", "link": "https://fanqienovel.com/page/7615591201386810393", "data": [16.25, 16.24, 17.22, 18.75, 19.12, 18.52, 18.5], "trend": 2.25, "latest": 18.5, "wordNumber": 984776, "creationStatus": 1, "desc": "动漫已上线！\n（有声已出）评分刚出，会涨的，放心入哈～\n【架空+空间+女强+家长里短+处理极品+日常+CP……】\n雇佣兵苏晚云，做最后一个任务被一枪爆头了。\n再醒来变成北国的农家女，要被奶奶和二叔拖去卖掉。\n她掌掴二叔，脚踢奶奶，带着被压榨得说话都不敢大声的爹决然断亲自立门户。\n上辈子的千万存款自动兑换成了灵泉空间，还有千亩良田。\n极品敢来闹事，打得他们鼻青脸肿。\n生死看淡，不服就干。\n住着破草棚，食不果腹，身无分文，那就上山打猎、挖草药，赚了银子就能盖房，天天大鱼大肉。\n有人抓着她的把柄来逼婚，直接干死他！\n她的愿望：赚到花不完的银子，直接躺平。\n某天，男人带着所有家当来敲门：“苏晚云，开门，我来入赘了。”", "tags": ["种田", "古代言情", "乡村", "穿越", "空间", "女强"], "crossPeriod": false, "borderColor": "#8e44ad", "backgroundColor": "#8e44ad22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7574739331256945726", "label": "古代农家夫妻的红火小日子", "fullTitle": "古代农家夫妻的红火小日子", "link": "https://fanqienovel.com/page/7574739331256945726", "data": [13.75, 13.98, 14.2, 14.38, 15.34, 15.46, 15.56], "trend": 1.81, "latest": 15.6, "wordNumber": 4647137, "creationStatus": 1, "desc": "（又名：清水故事）\n【古代种田/架空地图（南北乱炖）/群像（每个人都是自己人生的主角）/无空间/无金手指/乡村生活/细水长流】\n\n\n真人有声书已上线~欢迎收听~\n\n一本闲来无事，消磨光阴的好书~\n\n作者拥有五百万字长文经验，量大管饱~可放心追更观看~\n\n这是一户农家最真实的日子，是清水村林家一生的故事。\n\n这里有田间的汗水，也有市集的吆喝，\n\n有屋檐下的温馨，也有暗流涌动的危机，\n\n有病榻前的守候，也有绝境中的奋起，\n\n有朴实无华的相守，也有悄然滋生的情愫，\n\n酸甜苦辣，有哭有笑，列位看官，且听我慢慢道来...\n\n", "tags": ["种田", "古代言情", "乡村", "团宠", "互宠", "古色古香"], "crossPeriod": true, "borderColor": "#f1c40f", "backgroundColor": "#f1c40f22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7517657006560267288", "label": "流放？疯批恶女搬空国库去逃荒", "fullTitle": "流放？疯批恶女搬空国库去逃荒", "link": "https://fanqienovel.com/page/7517657006560267288", "data": [17.97, 19.27, 19.01, 17.99, 18.25, 18.73, 19.02], "trend": 1.05, "latest": 19.0, "wordNumber": 1815862, "creationStatus": 1, "desc": "【系统空间+天灾+神医+爽文+虐渣+发家致富】\n顶级特工纪云舒，一睁眼，成了书中的炮灰女配，刚醒来竟在强扑短命王爷！\n正准备入洞房！\n怎料皇帝老儿趁机下旨，把王府全家抄家流放！\n她喜提系统，把王府收了个精光，还顺手掏空了缺德娘家！搬空国库，挖空皇帝老儿祖坟！\n意外解锁系统隐藏功能\n叮！碰一下可解锁大商场一座！\n叮！亲一下可解锁灵泉空间！\n叮！睡一下可.......\n纪云舒：睡一下可解锁啥？你倒是说清楚啊！\n别人流放吃树皮，成饿死鬼，她流放一路吃香喝辣，空间在手，富得流油！\n路遇贪官？杀！搬空小金库！\n遇到强盗？！掏出机关枪，横扫土匪窝，占山为王！\n路遇天灾人祸？空间灵泉解百毒，成人美心善的绝世神医！\n狗皇帝坐不住了，派兵追杀？\n不好意思！她解锁整个空间武器库，开着飞机大炮轰了皇宫，再扫荡国库！\n整个西北流放地都成了她的领地！\n开奶茶店，烤肉店，建医院，修学堂，建商场，还附带穿越服务！\n皇帝老儿悔不当初，趴在城墙下两眼泪汪汪\n“王妃啊，我错了，你给我个西瓜吃吧，让我尝尝奶茶的味道吧。”", "tags": ["种田", "古代言情", "空间", "医术", "逃荒"], "crossPeriod": true, "borderColor": "#16a085", "backgroundColor": "#16a08522", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7548738856166624281", "label": "穿越兽世，被雄性们抢疯了", "fullTitle": "穿越兽世，被雄性们抢疯了", "link": "https://fanqienovel.com/page/7548738856166624281", "data": [20.74, 21.23, 21.73, 22.14, 22.36, 22.19, 21.78], "trend": 1.04, "latest": 21.8, "wordNumber": 902146, "creationStatus": 1, "desc": "【身穿＋雄多雌少＋兽世雌性身材火辣但普遍男相＋女主越变越美+多男】\n【女主底子非常好，胖的时候也不丑，像团白乎乎的棉花糖，可爱型的，瘦下来就是娇柔绝美型的。】\n\n遭遇洪水，高月这个一百六十斤的胖女孩不小心坠入异世界，开局就掉入了幽蟒部落的圣湖里，被一群巨蟒环绕。\n兽世雄多雌少，即使是胖女孩也有很多人追，但她不想匹配，于是厚着脸皮假装幼崽，企图萌混过关。\n后来因为兽世饮食健康，高月不知不觉越来越瘦，也越来越美，美得令人目眩神迷，同时暴露了自己已经成年的身份，于是众多虎视眈眈的雄性再也忍不住，疯狂大打出手，或追求，或强迫，都想成为她的兽夫。\n\n幽蟒最强者墨琊轻抚高月的后脖颈，弯唇轻笑：“既然你不是幼崽，不如考虑考虑我？”\n\n白狼部落的年轻少主：“墨琊那个无趣的家伙，哪有我有意思，跟我走吧？”\n\n火鸦目光灼灼，气势逼人：“我抢到的就归我了！你是我的！”\n\n还有雪象、猛虎、游隼……\n\n一个个都抢疯了。", "tags": ["种田", "古代言情", "穿越", "兽世", "精灵"], "crossPeriod": false, "borderColor": "#2ecc71", "backgroundColor": "#2ecc7122", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7613410424586767385", "label": "发配边关，罪妻开荒养出战神", "fullTitle": "发配边关，罪妻开荒养出战神", "link": "https://fanqienovel.com/page/7613410424586767385", "data": [68.22, 68.14, 75.59, 77.29, 71.33, 69.44, 68.9], "trend": 0.68, "latest": 68.9, "wordNumber": 797459, "creationStatus": 1, "desc": "【边关生活+木系+御兽+宠夫+护短+开荒种田+甜宠+双强直球夫妇+对照组】\n大靖连旱两年，粮荒四起，战火燃遍辽东。\n末世后勤员苏禾穿成罪奴丫鬟，被发配给军户为妻。\n罪奴姐妹极力表现，力争抢个优秀男儿，而她只看安全感，一眼锁定全场最壮的百户萧征。\n他冷脸拒绝：“我不需要媳妇，赏我粮食就行！我养不起，也没功夫照顾。”\n她直白坦荡：“我不用你照顾。我能种地，能持家。你很强，跟你，我安全。”\n没媳妇前的萧征：女人真麻烦！\n有了媳妇后，萧征夜夜搂着苏禾：真得劲！媳妇，再来二十个馒头！\n自此，边关多了一对双强夫妇。\n他负责拿刀护她，横扫敌军；\n她负责种田产粮，兜底全家。\n极品邻居攀比？打脸！\n边关缺粮断炊？解决！\n敌军突袭包围？放野兽！\n萧征从穷军户一路封将，世人皆知：\n大将军最厉害的不是战功，是他那位能种出天下粮的媳妇。\n【饭桶将军×产粮小媳妇】\n你负责打仗护家・我负责种地养你", "tags": ["种田", "古代言情", "乡村", "穿越", "强强", "宠夫"], "crossPeriod": false, "borderColor": "#95a5a6", "backgroundColor": "#95a5a622", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7619647324658093080", "label": "冤种世子要我命？几巴掌就服了", "fullTitle": "冤种世子要我命？几巴掌就服了", "link": "https://fanqienovel.com/page/7619647324658093080", "data": [20.47, 21.48, 22.1, 22.32, 21.77, 21.3, 20.57], "trend": 0.1, "latest": 20.6, "wordNumber": 606344, "creationStatus": 1, "desc": "#穿书##重生##双向误会##日常拌嘴##她真打他也是真的服##口嫌体正直##冤种世子在线挨打#\n#1v1##细水长流##成年人的恋爱##he#双洁#\n容忬穿书了，穿成一个穷得叮当响的猎户女。\n家里断粮三日，弟弟饿得啃桌子腿。\n好消息：捡到个四肢全断的漂亮男人，身上有银子。\n坏消息：原主把这个男人卖了换钱，换了三十两，害的人家胳膊被剁，复仇不得，怀恨而亡。\n更坏的消息：他重生了。\n但容忬不知道他重生了。想着怎么着也不能他复仇，准备刀了他。可看在那十两的份上，还是妥协了。\n扛回家，治，一套服务明码标价：你给钱，我救人，公平交易，童叟无欺。\n翟青祤望着这个上辈子将她卖掉的女人，发誓这一辈子都不会信她一个字。\n但这个女人不按剧本来。\n不温柔，不体贴，不假装关心，换药手重，喂饭靠怼，没耐心了就一巴掌。谈感情伤钱，谈钱又伤他。\n\"……你能不能轻点？\"\n\"轻点加多少钱？\"\n\"我不饿。\"\n\"你打算饿死好赊账？\"\n榜文出来了，悬赏二十五两。\n容忬看着这与记忆里不同的价格，又看了翟青祤一眼：\"你怎么还掉价了？\"\n翟青祤：\"……\"\n他恨她贪财，又恨自己动不了只能忍着，到后来，又发现忍习惯了……", "tags": ["种田", "古代言情", "乡村", "穿书", "HE", "双洁"], "crossPeriod": false, "borderColor": "#d35400", "backgroundColor": "#d3540022", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}]}, "recTracks": [{"cat": "古言脑洞", "score": 7, "reasons": ["7日增长+46.4万", "竞争系数低(3.5)", "腰部稳(均腰比1.14)"], "total19": 630.5, "growth": 7.9, "abs_growth": 46.4, "coeff": 3.5, "count10w": 30, "mean": 21.0, "mid19": 18.4, "mm_ratio": 1.14, "ndays": 7}, {"cat": "女频悬疑", "score": 7, "reasons": ["7日增长+22.4万", "竞争系数低(2.8)", "腰部稳(均腰比1.27)"], "total19": 250.7, "growth": 9.8, "abs_growth": 22.4, "coeff": 2.8, "count10w": 7, "mean": 8.4, "mid19": 6.6, "mm_ratio": 1.27, "ndays": 7}, {"cat": "女频衍生", "score": 7, "reasons": ["7日增长+28.0万", "竞争系数低(3.2)", "腰部稳(均腰比1.17)"], "total19": 215.6, "growth": 14.9, "abs_growth": 28.0, "coeff": 3.2, "count10w": 4, "mean": 7.2, "mid19": 6.2, "mm_ratio": 1.17, "ndays": 7}, {"cat": "宫斗宅斗", "score": 7, "reasons": ["7日增长+26.8万", "竞争系数低(4.0)", "腰部稳(均腰比1.31)"], "total19": 737.3, "growth": 3.8, "abs_growth": 26.8, "coeff": 4.0, "count10w": 30, "mean": 24.6, "mid19": 18.8, "mm_ratio": 1.31, "ndays": 7}, {"cat": "快穿", "score": 7, "reasons": ["7日增长+44.3万", "竞争系数低(2.3)", "腰部稳(均腰比1.12)"], "total19": 507.1, "growth": 9.6, "abs_growth": 44.3, "coeff": 2.3, "count10w": 30, "mean": 16.9, "mid19": 15.0, "mm_ratio": 1.12, "ndays": 7}, {"cat": "现言脑洞", "score": 7, "reasons": ["7日增长+96.5万", "竞争系数低(3.5)", "腰部稳(均腰比1.26)"], "total19": 918.0, "growth": 11.8, "abs_growth": 96.5, "coeff": 3.5, "count10w": 30, "mean": 30.6, "mid19": 24.2, "mm_ratio": 1.26, "ndays": 7}, {"cat": "种田", "score": 7, "reasons": ["7日增长+53.9万", "竞争系数低(3.6)", "腰部稳(均腰比1.19)"], "total19": 677.2, "growth": 8.6, "abs_growth": 53.9, "coeff": 3.6, "count10w": 30, "mean": 22.6, "mid19": 19.0, "mm_ratio": 1.19, "ndays": 7}, {"cat": "年代", "score": 6, "reasons": ["7日增长+1.3万", "竞争系数低(1.9)", "腰部稳(均腰比1.1)"], "total19": 804.4, "growth": 0.2, "abs_growth": 1.3, "coeff": 1.9, "count10w": 30, "mean": 26.8, "mid19": 24.5, "mm_ratio": 1.1, "ndays": 7}, {"cat": "星光璀璨", "score": 6, "reasons": ["7日增长+33.7万", "竞争系数中(9.3)", "腰部稳(均腰比1.64)"], "total19": 468.6, "growth": 7.8, "abs_growth": 33.7, "coeff": 9.3, "count10w": 14, "mean": 15.6, "mid19": 9.5, "mm_ratio": 1.64, "ndays": 7}, {"cat": "豪门总裁", "score": 6, "reasons": ["7日增长+7.4万", "竞争系数低(2.3)", "腰部稳(均腰比1.14)"], "total19": 1141.6, "growth": 0.6, "abs_growth": 7.4, "coeff": 2.3, "count10w": 30, "mean": 38.1, "mid19": 33.3, "mm_ratio": 1.14, "ndays": 7}, {"cat": "古风世情", "score": 4, "reasons": ["竞争系数低(3.5)", "腰部稳(均腰比1.3)"], "total19": 346.9, "growth": -3.4, "abs_growth": -12.2, "coeff": 3.5, "count10w": 13, "mean": 11.6, "mid19": 8.9, "mm_ratio": 1.3, "ndays": 7}, {"cat": "科幻末世", "score": 4, "reasons": ["竞争系数低(2.6)", "腰部稳(均腰比1.18)"], "total19": 440.3, "growth": -3.4, "abs_growth": -15.6, "coeff": 2.6, "count10w": 21, "mean": 14.7, "mid19": 12.4, "mm_ratio": 1.18, "ndays": 7}, {"cat": "职场婚恋", "score": 4, "reasons": ["竞争系数低(4.6)", "腰部稳(均腰比1.37)"], "total19": 465.3, "growth": -3.3, "abs_growth": -15.8, "coeff": 4.6, "count10w": 20, "mean": 15.5, "mid19": 11.3, "mm_ratio": 1.37, "ndays": 7}, {"cat": "青春甜宠", "score": 4, "reasons": ["竞争系数低(3.4)", "腰部稳(均腰比1.37)"], "total19": 847.2, "growth": -2.3, "abs_growth": -20.3, "coeff": 3.4, "count10w": 30, "mean": 28.2, "mid19": 20.6, "mm_ratio": 1.37, "ndays": 7}, {"cat": "悬疑脑洞", "score": 3, "reasons": ["竞争系数中(5.7)", "腰部稳(均腰比1.36)"], "total19": 423.7, "growth": -5.1, "abs_growth": -22.5, "coeff": 5.7, "count10w": 17, "mean": 14.1, "mid19": 10.4, "mm_ratio": 1.36, "ndays": 7}, {"cat": "玄幻言情", "score": 3, "reasons": ["竞争系数中(5.3)", "腰部稳(均腰比1.48)"], "total19": 890.8, "growth": -5.0, "abs_growth": -46.6, "coeff": 5.3, "count10w": 30, "mean": 29.7, "mid19": 20.0, "mm_ratio": 1.48, "ndays": 7}, {"cat": "民国言情", "score": 2, "reasons": ["基本稳定(-4.1万)", "腰部中(均腰比2.03)"], "total19": 163.8, "growth": -2.4, "abs_growth": -4.1, "coeff": 11.0, "count10w": 4, "mean": 5.5, "mid19": 2.7, "mm_ratio": 2.03, "ndays": 7}, {"cat": "游戏体育", "score": -1, "reasons": ["头部虹吸(均腰比3.57)"], "total19": 456.6, "growth": -24.3, "abs_growth": -146.9, "coeff": 52.2, "count10w": 8, "mean": 15.2, "mid19": 4.3, "mm_ratio": 3.57, "ndays": 7}], "metrics": {"古言脑洞": {"total19": 630.5, "growth": 7.9, "abs_growth": 46.4, "coeff": 3.5, "count10w": 30, "mean": 21.0, "mid19": 18.4, "mm_ratio": 1.14, "ndays": 7}, "古风世情": {"total19": 346.9, "growth": -3.4, "abs_growth": -12.2, "coeff": 3.5, "count10w": 13, "mean": 11.6, "mid19": 8.9, "mm_ratio": 1.3, "ndays": 7}, "女频悬疑": {"total19": 250.7, "growth": 9.8, "abs_growth": 22.4, "coeff": 2.8, "count10w": 7, "mean": 8.4, "mid19": 6.6, "mm_ratio": 1.27, "ndays": 7}, "女频衍生": {"total19": 215.6, "growth": 14.9, "abs_growth": 28.0, "coeff": 3.2, "count10w": 4, "mean": 7.2, "mid19": 6.2, "mm_ratio": 1.17, "ndays": 7}, "宫斗宅斗": {"total19": 737.3, "growth": 3.8, "abs_growth": 26.8, "coeff": 4.0, "count10w": 30, "mean": 24.6, "mid19": 18.8, "mm_ratio": 1.31, "ndays": 7}, "年代": {"total19": 804.4, "growth": 0.2, "abs_growth": 1.3, "coeff": 1.9, "count10w": 30, "mean": 26.8, "mid19": 24.5, "mm_ratio": 1.1, "ndays": 7}, "快穿": {"total19": 507.1, "growth": 9.6, "abs_growth": 44.3, "coeff": 2.3, "count10w": 30, "mean": 16.9, "mid19": 15.0, "mm_ratio": 1.12, "ndays": 7}, "悬疑脑洞": {"total19": 423.7, "growth": -5.1, "abs_growth": -22.5, "coeff": 5.7, "count10w": 17, "mean": 14.1, "mid19": 10.4, "mm_ratio": 1.36, "ndays": 7}, "星光璀璨": {"total19": 468.6, "growth": 7.8, "abs_growth": 33.7, "coeff": 9.3, "count10w": 14, "mean": 15.6, "mid19": 9.5, "mm_ratio": 1.64, "ndays": 7}, "民国言情": {"total19": 163.8, "growth": -2.4, "abs_growth": -4.1, "coeff": 11.0, "count10w": 4, "mean": 5.5, "mid19": 2.7, "mm_ratio": 2.03, "ndays": 7}, "游戏体育": {"total19": 456.6, "growth": -24.3, "abs_growth": -146.9, "coeff": 52.2, "count10w": 8, "mean": 15.2, "mid19": 4.3, "mm_ratio": 3.57, "ndays": 7}, "玄幻言情": {"total19": 890.8, "growth": -5.0, "abs_growth": -46.6, "coeff": 5.3, "count10w": 30, "mean": 29.7, "mid19": 20.0, "mm_ratio": 1.48, "ndays": 7}, "现言脑洞": {"total19": 918.0, "growth": 11.8, "abs_growth": 96.5, "coeff": 3.5, "count10w": 30, "mean": 30.6, "mid19": 24.2, "mm_ratio": 1.26, "ndays": 7}, "种田": {"total19": 677.2, "growth": 8.6, "abs_growth": 53.9, "coeff": 3.6, "count10w": 30, "mean": 22.6, "mid19": 19.0, "mm_ratio": 1.19, "ndays": 7}, "科幻末世": {"total19": 440.3, "growth": -3.4, "abs_growth": -15.6, "coeff": 2.6, "count10w": 21, "mean": 14.7, "mid19": 12.4, "mm_ratio": 1.18, "ndays": 7}, "职场婚恋": {"total19": 465.3, "growth": -3.3, "abs_growth": -15.8, "coeff": 4.6, "count10w": 20, "mean": 15.5, "mid19": 11.3, "mm_ratio": 1.37, "ndays": 7}, "豪门总裁": {"total19": 1141.6, "growth": 0.6, "abs_growth": 7.4, "coeff": 2.3, "count10w": 30, "mean": 38.1, "mid19": 33.3, "mm_ratio": 1.14, "ndays": 7}, "青春甜宠": {"total19": 847.2, "growth": -2.3, "abs_growth": -20.3, "coeff": 3.4, "count10w": 30, "mean": 28.2, "mid19": 20.6, "mm_ratio": 1.37, "ndays": 7}}},
+  Read3: {"n": 3, "days": ["8月17日", "8月18日", "8月19日"], "rawDays": ["20260817", "20260818", "20260819"], "startLabel": "8月17日", "endLabel": "8月19日", "dateRange": "2026-08-17 ~ 2026-08-19", "nRising": 9, "catTags": {"种田": [{"tag": "古代言情", "count": 17}, {"tag": "穿越", "count": 10}, {"tag": "空间", "count": 8}, {"tag": "乡村", "count": 6}, {"tag": "发家致富", "count": 6}, {"tag": "医术", "count": 5}, {"tag": "虐渣", "count": 4}, {"tag": "无CP", "count": 3}, {"tag": "逃荒", "count": 3}, {"tag": "萌宝", "count": 2}]}, "overviewDatasets": [{"label": "古风世情", "data": [344.1, 344.2, 346.9], "borderColor": "#c0392b", "backgroundColor": "#c0392b22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "女频衍生", "data": [192.2, 209.7, 215.6], "borderColor": "#d35400", "backgroundColor": "#d3540022", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "宫斗宅斗", "data": [700.6, 728.4, 737.3], "borderColor": "#e67e22", "backgroundColor": "#e67e2222", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "年代", "data": [798.7, 801.6, 804.4], "borderColor": "#27ae60", "backgroundColor": "#27ae6022", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "星光璀璨", "data": [424.0, 467.4, 468.6], "borderColor": "#f1c40f", "backgroundColor": "#f1c40f22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "现言脑洞", "data": [903.6, 911.2, 918.0], "borderColor": "#9b59b6", "backgroundColor": "#9b59b622", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "种田", "data": [660.6, 669.9, 677.2], "borderColor": "#2ecc71", "backgroundColor": "#2ecc7122", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "职场婚恋", "data": [462.8, 463.9, 465.3], "borderColor": "#2980b9", "backgroundColor": "#2980b922", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}, {"label": "豪门总裁", "data": [1101.7, 1152.9, 1141.6], "borderColor": "#e74c3c", "backgroundColor": "#e74c3c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2.5}], "growthCats": ["女频衍生", "星光璀璨", "宫斗宅斗", "豪门总裁", "种田", "现言脑洞", "古风世情", "年代", "职场婚恋", "女频悬疑", "民国言情", "科幻末世", "快穿", "古言脑洞", "悬疑脑洞", "青春甜宠", "游戏体育", "玄幻言情"], "growthValues": [12.2, 10.5, 5.2, 3.6, 2.5, 1.6, 0.8, 0.7, 0.5, -0.1, -0.1, -0.2, -0.7, -1.0, -2.1, -2.1, -6.9, -24.9], "growthColors": ["#22c55e", "#22c55e", "#22c55e", "#22c55e", "#22c55e", "#22c55e", "#22c55e", "#22c55e", "#22c55e", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444", "#ef4444"], "bubbleData": [{"x": 630.5, "y": 3.5, "r": 58.0, "label": "古言脑洞", "count10w": 30}, {"x": 346.9, "y": 3.5, "r": 27.400000000000002, "label": "古风世情", "count10w": 13}, {"x": 250.7, "y": 2.8, "r": 16.6, "label": "女频悬疑", "count10w": 7}, {"x": 215.6, "y": 3.2, "r": 11.2, "label": "女频衍生", "count10w": 4}, {"x": 737.3, "y": 4.0, "r": 58.0, "label": "宫斗宅斗", "count10w": 30}, {"x": 804.4, "y": 1.9, "r": 58.0, "label": "年代", "count10w": 30}, {"x": 507.1, "y": 2.3, "r": 58.0, "label": "快穿", "count10w": 30}, {"x": 423.7, "y": 5.7, "r": 34.6, "label": "悬疑脑洞", "count10w": 17}, {"x": 468.6, "y": 9.3, "r": 29.2, "label": "星光璀璨", "count10w": 14}, {"x": 163.8, "y": 11.0, "r": 11.2, "label": "民国言情", "count10w": 4}, {"x": 456.6, "y": 52.2, "r": 18.4, "label": "游戏体育", "count10w": 8}, {"x": 890.8, "y": 5.3, "r": 58.0, "label": "玄幻言情", "count10w": 30}, {"x": 918.0, "y": 3.5, "r": 58.0, "label": "现言脑洞", "count10w": 30}, {"x": 677.2, "y": 3.6, "r": 58.0, "label": "种田", "count10w": 30}, {"x": 440.3, "y": 2.6, "r": 41.800000000000004, "label": "科幻末世", "count10w": 21}, {"x": 465.3, "y": 4.6, "r": 40.0, "label": "职场婚恋", "count10w": 20}, {"x": 1141.6, "y": 2.3, "r": 58.0, "label": "豪门总裁", "count10w": 30}, {"x": 847.2, "y": 3.4, "r": 58.0, "label": "青春甜宠", "count10w": 30}], "bookChartData": {"种田": [{"bookId": "7586034648640146457", "label": "被休回娘家，二嫁猎户带飞全村！", "fullTitle": "被休回娘家，二嫁猎户带飞全村！", "link": "https://fanqienovel.com/page/7586034648640146457", "data": [21.47, 23.75, 27.84], "trend": 6.37, "latest": 27.8, "wordNumber": 1005546, "creationStatus": 0, "desc": "【糙汉+怪力女+双洁+家长里短+空间+经商+种田】改编书名：斗极品嫁猎户，日子风生水起！\n人类与丧尸的最后一战中，周小麦光荣牺牲！\n再次睁眼，她来到了一个架空时代，成了一个被休的乡下弃妇。\n恶毒的奶奶，爱算计的大伯娘，妈宝的爹，软弱的娘。\n这种家庭还嫌弃她丢人现眼，不肯让她回娘家？\n好好好，本来她也没打算留来下为这家人挖野菜，转头就去和猎户做了邻居。\n这个世道女子活不下去？\n不存在的！\n上山砍柴，下河摸鱼，种田经商，对于一个末世女人而言，洒洒水的基本生存技能。\n日子风生水起，猎户时不时蹭个饭，一次醉酒乱性，肚子里多出了块肉。\n猎户家比她娘家还邪乎。\n惧内的爹，刻薄的后娘，自私的小叔，爱打秋风的姑姐。\n周小麦表示，这种人家不能嫁！\n谁知猎户天天追着她保证自己可以断舍离……", "tags": ["种田", "古代言情", "乡村", "穿越", "空间", "虐渣"], "crossPeriod": false, "borderColor": "#e74c3c", "backgroundColor": "#e74c3c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7476390307068660760", "label": "分家咋了？天天吃肉赚钱盖大房！", "fullTitle": "分家咋了？天天吃肉赚钱盖大房！", "link": "https://fanqienovel.com/page/7476390307068660760", "data": [28.01, 29.05, 31.77], "trend": 3.76, "latest": 31.8, "wordNumber": 1000307, "creationStatus": 0, "desc": "（穿越+种田+空间+一点点发家致富+无CP）\n林棉穿越了，成了无父无母，被爷奶嫌弃的孙女。\n还好有空间，山里经常有野猪、大虫出没，村里无人敢去，她无所畏惧。\n带弟弟们进山摘辣椒、挖陷阱，买鸭、买羊，断亲分家日子越过越红火。\n把爷奶卖了的大姐买回来。\n给弟弟们盖上青砖大瓦房，娶媳妇。\n爷奶红眼找上门：\n“你小姑要出嫁，你大伯家大哥娶媳妇儿，出多少银钱，你看着办？”\n林棉啐他们一口，“臭不要脸”\n日子慢慢过，有钱慢慢赚，有福慢慢享。", "tags": ["种田", "古代言情", "穿越", "空间", "无CP", "发家致富"], "crossPeriod": false, "borderColor": "#e91e8c", "backgroundColor": "#e91e8c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7519959894917647422", "label": "穿成恶婆婆后，儿媳抢着给我养老", "fullTitle": "穿成恶婆婆后，儿媳抢着给我养老", "link": "https://fanqienovel.com/page/7519959894917647422", "data": [16.18, 18.13, 19.89], "trend": 3.7, "latest": 19.9, "wordNumber": 726421, "creationStatus": 0, "desc": "已完结，短剧已上线，欢迎收看。（无cp！种田+空间+家长里短（微群像）+发家致富+爽文+医术） \n注：新书字数少评分低正常，会慢慢涨的哟～\n医学博士吴玉兰猝死后，魂穿成了个刻薄尖酸的恶毒老太。\n　吴老太恶毒是出了名，磋磨儿媳，买卖孙女，啥腌臜事儿都干得出来。\n　　四个儿子，除了小儿子，其余都是干活的牛马。\n　　为了让小儿子吃上肉，冬日让大儿子上山打猎，害的大儿子差点被猛兽咬死；\n　　为了让小儿子念上书，夏日送二儿子去修河道，害的二儿子差点累死；\n　　为了给小儿子铺路，还把摔断腿的三儿子送去边关，害的三儿子差点战死。\n　　可某一天，吴老太变了......\n　　她不再宠溺小儿子，不受待见的孙女也被她挨个赎回。\n　　宋知康知晓妻子生产，千里迢迢赶回来，本以为妻子会被偏心母亲折磨得不成人样。\n　　结果让他傻眼......\n　　妻子面色红润，人胖了一圈。\n　　刚出生的女儿更是被养的胖嘟嘟，小手跟藕段似的肉嘟嘟。\n　　再看家中其他女眷，一个个丰圆玉润，悠闲的在廊下绣花。\n　　而他那恶毒老娘，正挥着大扫帚，追着她最疼爱的四儿子打。\n　　我的老天，这还是我家吗？", "tags": ["种田", "古代言情", "穿越", "空间", "医术", "发家致富"], "crossPeriod": true, "borderColor": "#9b59b6", "backgroundColor": "#9b59b622", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7595102903841344537", "label": "崽崽荷包通两界，荒村变成桃花源", "fullTitle": "崽崽荷包通两界，荒村变成桃花源", "link": "https://fanqienovel.com/page/7595102903841344537", "data": [37.56, 38.74, 39.65], "trend": 2.09, "latest": 39.7, "wordNumber": 944335, "creationStatus": 1, "desc": "【种田+古今穿越+萌宝+温馨经营（日常向，无cp)】\n\n五岁芽芽的破荷包能通现代。\n\n从捡垃圾堆里半个卤蛋开始，到发现野菜在现代价比黄金。\n\n从捡拾到交换，从求生到经营。\n\n她背着小背篓穿梭两界，从一颗卤蛋到满仓粮食，从濒临绝境到炊烟袅袅。\n\n山还是那座山，日子却一天天有了滋味。", "tags": ["种田", "古代言情", "乡村", "萌宝", "穿越", "无CP"], "crossPeriod": true, "borderColor": "#f39c12", "backgroundColor": "#f39c1222", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7443016187258080318", "label": "重生在穿越女之前抢回前夫", "fullTitle": "重生在穿越女之前抢回前夫", "link": "https://fanqienovel.com/page/7443016187258080318", "data": [17.15, 18.28, 18.96], "trend": 1.81, "latest": 19.0, "wordNumber": 402942, "creationStatus": 0, "desc": "[种田+美食+古代言情+重生+穿越+读心术]\n林玉禾重生了，重生在了她前夫和他白月光大婚当日。\n她悔恨不已自己前世鼠目寸光，才会同谢书淮和离并打掉了他的孩子，还识人不清和恶人未婚夫定了亲。\n那恶人早在外面养了外室和孩子，娶她回去也是做个背锅的主母。\n最终酿成她被恶人所杀的结果。\n往日谢书淮性子虽冷漠，对她还算用心，包容她的各种刁难。\n抄书挣来的银子自己都舍不得用，却给林玉禾添置衣衫。\n死后，她一心念着谢书淮对她的好，一腔执念成了孤魂野鬼守着谢书淮多年，看他高中探花，还见谢书淮为自己抱了仇。\n直到谢书淮仕途顺遂身居高位娶了他的白月光后。\n林玉禾才黯然离场，不想却重生了。\n得老天垂怜，林玉禾在心中暗暗发誓，定要抢回自己前夫。\n她凭着三个月的身孕，成功抢回谢书淮的人，却没抢回他的心。\n只因情敌太过强大，不仅是谢书淮心中挂念的白月光，还是穿越而来的后世之人样样赢过自己。\n林玉禾也不沮丧，她发现自己竟能听到穿越女的心声。两人暗中较劲，却换来谢书淮对她态度越来越恶劣。\n看着他们两人越走越近。\n林玉禾心灰意冷准备成全两人时。\n谢书淮把她拽进怀中，大声质问道：“怎么？准备放弃，往日折腾我的那股劲去哪儿了。”\n（男女主双洁）\n\n\n\n\n我在\n\n此文忘记", "tags": ["种田", "古代言情", "重生", "美食", "双洁"], "crossPeriod": false, "borderColor": "#1abc9c", "backgroundColor": "#1abc9c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7544980163042216984", "label": "被嫁给瘸腿猎户，饥荒年顿顿吃肉", "fullTitle": "被嫁给瘸腿猎户，饥荒年顿顿吃肉", "link": "https://fanqienovel.com/page/7544980163042216984", "data": [14.05, 14.48, 15.76], "trend": 1.71, "latest": 15.8, "wordNumber": 1323123, "creationStatus": 0, "desc": "【穿越+种田+医术+打猎+采药+系统+商城+空间】\nps：没有京城、朝堂、王爷、将军、简单温馨种田日常、微群像。\n凌溪从小身患心脏病，爹不疼娘不爱\n好不容易熬到医师转正，却又病发离世\n再睁眼，\n她成了饥荒年，被恶毒阿奶卖给瘸子冲喜的林西。\n一番权衡，先跟娘家断亲。\n再嫁瘸腿猎户\n没想到，成婚第二日就被公婆分出家？\n莫慌！\n进山、开荒、打猎，采草药\n一不小心还解锁了，草药图鉴系统。\n采到草药解锁图鉴\n不但有积分能在商城兑换物资，\n还能掉落丰厚的实物奖励。\n帮瘸腿相公治好腿。\n奖励更多！\n外面饥荒，饿尸殍野。\n深山之中他们天天吃肉……\n不太会写简介，大家移步正文！", "tags": ["种田", "古代言情", "系统", "穿越", "空间", "医术"], "crossPeriod": false, "borderColor": "#3498db", "backgroundColor": "#3498db22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7562189810253696025", "label": "寒门明珠", "fullTitle": "寒门明珠", "link": "https://fanqienovel.com/page/7562189810253696025", "data": [15.23, 16.28, 16.89], "trend": 1.66, "latest": 16.9, "wordNumber": 1336981, "creationStatus": 0, "desc": "夏乔，现代世界的“赛阎王”，一手杀人术登峰造极，一手医术活人无数。\n最后却没防住身后队友捅来的刀子。结果再睁眼，竟成了一个刚被丢弃在雪地里的婴儿。\n两世被弃，她以为此生与爱无缘。\n所幸，一户贫苦农家给了她一个家，将她捧在手心，用全部的温度捂热了她冰冷的心。\n她以为，这辈子就是种种田，行行医，守着爹娘和乐一生。\n直到那天，血淋淋的真相被揭开..........", "tags": ["种田", "古代言情", "穿越", "医术", "今穿古", "魂穿"], "crossPeriod": false, "borderColor": "#e67e22", "backgroundColor": "#e67e2222", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7545324289256328216", "label": "想兼祧两房？搬空家产带儿女和离", "fullTitle": "想兼祧两房？搬空家产带儿女和离", "link": "https://fanqienovel.com/page/7545324289256328216", "data": [30.12, 30.78, 31.72], "trend": 1.6, "latest": 31.7, "wordNumber": 1152924, "creationStatus": 0, "desc": "【有空间，不是双洁，女主懂医术。】\n末世摸爬滚打多年的乔念，带着空间穿越到古代，一个穷秀才的妻子。\n刚睁眼，龙凤胎儿女面临被卖，乔念凭借自己的武力夺回孩子。\n成亲五年的秀才相公不回家？\n她带着孩子找过去。\n结果却发现，丈夫和寡嫂在城里，小日子过得风生水起，连儿子都生了俩。\n乔念一去，大杀四方，胖揍狗男女，搬空婆家所有财物。\n和离后，带着娘家人赚得盆满钵满。\n乔念变得越来越漂亮，肤白貌美又多金，渣前夫肠子都悔青了。\n他厚着脸皮上门求和，被乔念一脚踢出门。\n渣男有多远给我滚多远……", "tags": ["种田", "古代言情", "穿越", "空间", "医术", "发家致富"], "crossPeriod": true, "borderColor": "#27ae60", "backgroundColor": "#27ae6022", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7620425812189121598", "label": "分家，继母渣爹跪求我回家", "fullTitle": "分家，继母渣爹跪求我回家", "link": "https://fanqienovel.com/page/7620425812189121598", "data": [25.69, 26.71, 27.2], "trend": 1.5, "latest": 27.2, "wordNumber": 656894, "creationStatus": 1, "desc": "（漫剧已出）一睁眼，林仟仟成了农家炮灰女。\n亲娘刚死，继母带着她女儿进门了，从此她和三岁的弟弟住进了柴房，一天两顿稀粥，还要挨打受骂。继母说：“女孩子家，识什么字？”转头却给继妹请了先生。\n爷奶偏心小叔，大伯母尖酸刻薄，整日惦记着把她卖个好价钱。亲爹呢？站在院里搓着手，屁都不敢放一个。\n林仟仟笑了。\n牵着弟弟的手往外走。\n“分家。”\n堂屋里一片哄笑：“一个丫头片子，带着个拖油瓶，分出去等死？”\n她没回头。\n分家后，她采野菜卖野兔赚了第一桶金。\n一个月后，她的木薯淀粉风靡镇上酒楼。\n两个月后，她买下了村东头三十亩地。\n三个月后，她要翻新老宅推倒重盖\n继母急了，爷奶慌了，亲爹站在院门口来回踱步——那院门，她牵着弟弟走出去那天，就再没打算回来。\n年底，她坐着新打的牛车经过老宅门口，继母追出来喊她的名字。\n她低头给弟弟擦了擦嘴角的油光，头都没抬：\n“娘？我娘早死了。”", "tags": ["种田", "古代言情", "乡村", "穿越", "虐渣", "发家致富"], "crossPeriod": false, "borderColor": "#8e44ad", "backgroundColor": "#8e44ad22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7335796433146088510", "label": "逃荒，我全家都是重生的", "fullTitle": "逃荒，我全家都是重生的", "link": "https://fanqienovel.com/page/7335796433146088510", "data": [14.42, 14.86, 15.39], "trend": 0.97, "latest": 15.4, "wordNumber": 1008891, "creationStatus": 0, "desc": "【预知梦+全家重生+无cp】前世苏音、苏母、小姑三人惨死在暴民屠刀下。转眼间，三人一同重生，在暴民冲入村庄前，带上杏花村（舅舅所在村子）提前逃离。\n逃荒路上，遇到被苏家人抛弃的愚孝爹，本以为他是拖后腿的存在，没想到他未卜先知，手段变得狠辣。\n在京城中遇到傻白甜双胞胎弟弟，结果一个变得阴险狡诈，一个变的冷血无情。\n“说吧，你们前世身份。”\n愚孝爹:“额，傀儡……皇帝。”\n二弟别过脸，“九千岁！”\n三弟冷着脸，“暗阁阁主。”\n好家伙！苏音直呼好家伙！这都是牛逼的主！\n听着他们说的前世，怎么觉得有点不对劲……\n三人的记忆似乎都……不一样。\n体验过腥风血雨的一家子，这辈子只想安安稳稳过地主小日子。\n可偏偏有人不愿意，用刀逼着他们下场。\n既然都不想过安稳日子，那就都别玩了。\n“爹！反了吧！”苏音。\n愚孝爹磨着屠刀，嘴上却说道:“闺女，这不好吧。”\n结果，转身就掀桌。\n阴险狡诈的二弟，“姐，搞得那么血腥不妥吧！”\n结果，转身就覆灭十万大军……\n冷血无情的三弟，“姐，娘说我们做事得温柔点！”\n结果，转身就一刀斩杀叛军首领！\n苏音:“…", "tags": ["种田", "古代言情", "重生", "前世今生", "逃荒"], "crossPeriod": false, "borderColor": "#f1c40f", "backgroundColor": "#f1c40f22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7313444102157126718", "label": "穿成疯娘：别怕，好日子在后头", "fullTitle": "穿成疯娘：别怕，好日子在后头", "link": "https://fanqienovel.com/page/7313444102157126718", "data": [19.24, 19.77, 20.08], "trend": 0.85, "latest": 20.1, "wordNumber": 1037352, "creationStatus": 0, "desc": "武力值满满女主+勤劳致富\n周琼不过是下水救人，哪个知道这一落水她便从一个现代好青年变成了古代见人就咬的疯妇一名，\n好在只有疯娘没有疯爹，看着两个孤苦懂事却备受生活折磨的孩子，她心中隐痛，不就是当娘，她定要让孩子们吃饱穿暖，成为村里人人羡慕的对象。\n只是这头刚建设好小家，村子也因为她日渐温饱，却因为疯妇身世的原因突发意外一朝回到了解放前。\n老天啊，这是在考验她的能耐吗，不就是重来，到哪里她都是那个能把日子过得蒸蒸日上的人！", "tags": ["种田", "古代言情", "乡村", "萌宝", "穿越"], "crossPeriod": true, "borderColor": "#16a085", "backgroundColor": "#16a08522", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7517657006560267288", "label": "流放？疯批恶女搬空国库去逃荒", "fullTitle": "流放？疯批恶女搬空国库去逃荒", "link": "https://fanqienovel.com/page/7517657006560267288", "data": [18.25, 18.73, 19.02], "trend": 0.77, "latest": 19.0, "wordNumber": 1815862, "creationStatus": 1, "desc": "【系统空间+天灾+神医+爽文+虐渣+发家致富】\n顶级特工纪云舒，一睁眼，成了书中的炮灰女配，刚醒来竟在强扑短命王爷！\n正准备入洞房！\n怎料皇帝老儿趁机下旨，把王府全家抄家流放！\n她喜提系统，把王府收了个精光，还顺手掏空了缺德娘家！搬空国库，挖空皇帝老儿祖坟！\n意外解锁系统隐藏功能\n叮！碰一下可解锁大商场一座！\n叮！亲一下可解锁灵泉空间！\n叮！睡一下可.......\n纪云舒：睡一下可解锁啥？你倒是说清楚啊！\n别人流放吃树皮，成饿死鬼，她流放一路吃香喝辣，空间在手，富得流油！\n路遇贪官？杀！搬空小金库！\n遇到强盗？！掏出机关枪，横扫土匪窝，占山为王！\n路遇天灾人祸？空间灵泉解百毒，成人美心善的绝世神医！\n狗皇帝坐不住了，派兵追杀？\n不好意思！她解锁整个空间武器库，开着飞机大炮轰了皇宫，再扫荡国库！\n整个西北流放地都成了她的领地！\n开奶茶店，烤肉店，建医院，修学堂，建商场，还附带穿越服务！\n皇帝老儿悔不当初，趴在城墙下两眼泪汪汪\n“王妃啊，我错了，你给我个西瓜吃吧，让我尝尝奶茶的味道吧。”", "tags": ["种田", "古代言情", "空间", "医术", "逃荒"], "crossPeriod": true, "borderColor": "#2ecc71", "backgroundColor": "#2ecc7122", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7546430467558345752", "label": "全家提前两年囤货，逃荒吃香喝辣", "fullTitle": "全家提前两年囤货，逃荒吃香喝辣", "link": "https://fanqienovel.com/page/7546430467558345752", "data": [14.8, 15.28, 15.42], "trend": 0.62, "latest": 15.4, "wordNumber": 1446794, "creationStatus": 1, "desc": "【空间+赶山找山货+草药野果野菜真实配图+家长里短+逃荒+群像+囤货+虐渣+无CP]\t\n（又名：全家提前两年囤货，逃荒吃香喝辣）\n李杏儿做了一个奇怪的预知梦，她梦见自己十八代祖宗正在被屠杀。\n她必须穿越过去拯救自己的老祖宗。\n不然后世的她会因为蝴蝶反应消失，没想到老祖宗的魂在地府把人都求遍了，上天才给她十天同时又获得灵泉空间和千万存款。\n她迅速开启买买买囤货模式。\n十天过去，她买好物资穿定时越到古代池州杏花村。\n没想到穿早了，距离可怕的荒年还有两年。\n李杏儿发誓带着一空间物资要在古代过上好日。\n...\n谁都没想到。\n李杏儿穿越后变成大力女，一身武力值超高。\n她拳打野猪，脚踢恶霸，别人不敢去的禁山是她的粮仓，山珍野味随便捡。\n穿越后的春耕她利用现代化种子种出千斤粮食，搞出惊人的大丰收，带全家疯狂囤货。\n两年后。\n地震，火山爆发，蝗灾，瘟疫如期而至。杏花村全村人却没个怕的。\n因为地窖堆满粮食，杏儿带着村民们逃荒路上底气嘎嘎强!", "tags": ["种田", "古代言情", "空间", "逃荒", "群像", "无CP", "虐渣", "囤物资"], "crossPeriod": true, "borderColor": "#95a5a6", "backgroundColor": "#95a5a622", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7617458520832609305", "label": "旺家小福女", "fullTitle": "旺家小福女", "link": "https://fanqienovel.com/page/7617458520832609305", "data": [30.01, 30.5, 30.62], "trend": 0.6, "latest": 30.6, "wordNumber": 979264, "creationStatus": 1, "desc": "穿越？重生？都没有。林小满只是一个古代农家普通小丫头。\n\n被后娘推进冰窟窿那天，她以为自己死定了。是隔壁的张婶子把她捞起来，带回了家。“从今往后，你就是我李家的闺女！”\n\n李家穷的住破屋烂瓦，吃野菜糊糊粥，没想到自打她来了，李家就跟开了光似的——栗子捡不完、赏银从天降、老宅挖出存钱罐、烧炭赶上官府收购……日子越过越红火，三个哥哥也进了学堂。\n\n李家人都说她是福星，可林小满知道：哪有什么福星，不过是老天爷可怜她，给了她一双能看见明天的眼睛。", "tags": ["种田", "古代言情", "乡村", "幻想言情", "发家致富", "古色古香"], "crossPeriod": true, "borderColor": "#d35400", "backgroundColor": "#d3540022", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "6849391701497220109", "label": "农家团宠娇娇女", "fullTitle": "农家团宠娇娇女", "link": "https://fanqienovel.com/page/6849391701497220109", "data": [18.9, 19.25, 19.23], "trend": 0.33, "latest": 19.2, "wordNumber": 1459545, "creationStatus": 0, "desc": "糖宝没了爹娘，亲戚都不愿意养，说她克人。\n拥有七个孙子的杨老太为凑齐八（谐音“发”），把糖宝领回了家。\n人人都说杨家养糖宝这下要倒霉了，可杨家不仅没倒霉，还成了大周新贵！\n就是杨家人脾气不好，一有人说糖宝克人，杨老二就瞪眼：哪个不要命的说我闺女克人？\n杨老太最牛逼，抽出一根绳子跑到人家：说你自个克人，不说我就吊死在你家。\n杨家七个孙子围着糖宝：妹妹吃糖。\n糖宝：耶？我是来凑数的呀，怎么凑成了人人疼爱的小宝贝？", "tags": ["种田", "古代言情", "团宠", "古灵精怪", "甜宠", "发家致富"], "crossPeriod": true, "borderColor": "#2980b9", "backgroundColor": "#2980b922", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7574739331256945726", "label": "古代农家夫妻的红火小日子", "fullTitle": "古代农家夫妻的红火小日子", "link": "https://fanqienovel.com/page/7574739331256945726", "data": [15.34, 15.46, 15.56], "trend": 0.22, "latest": 15.6, "wordNumber": 4647137, "creationStatus": 1, "desc": "（又名：清水故事）\n【古代种田/架空地图（南北乱炖）/群像（每个人都是自己人生的主角）/无空间/无金手指/乡村生活/细水长流】\n\n\n真人有声书已上线~欢迎收听~\n\n一本闲来无事，消磨光阴的好书~\n\n作者拥有五百万字长文经验，量大管饱~可放心追更观看~\n\n这是一户农家最真实的日子，是清水村林家一生的故事。\n\n这里有田间的汗水，也有市集的吆喝，\n\n有屋檐下的温馨，也有暗流涌动的危机，\n\n有病榻前的守候，也有绝境中的奋起，\n\n有朴实无华的相守，也有悄然滋生的情愫，\n\n酸甜苦辣，有哭有笑，列位看官，且听我慢慢道来...\n\n", "tags": ["种田", "古代言情", "乡村", "团宠", "互宠", "古色古香"], "crossPeriod": true, "borderColor": "#e74c3c", "backgroundColor": "#e74c3c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}, {"bookId": "7582643550953671705", "label": "断亲住破屋？不怕，小农女有空间", "fullTitle": "断亲住破屋？不怕，小农女有空间", "link": "https://fanqienovel.com/page/7582643550953671705", "data": [16.37, 16.88, 16.41], "trend": 0.05, "latest": 16.4, "wordNumber": 1483207, "creationStatus": 1, "desc": "动漫已上线～\n真人有声已出～\n（评分刚出，后面会涨的，放心入哈～）\n【空间+架空+架空+架空+种田+女强+家长里短+有cp……】\n作为雇佣兵的方若宁，做任务时中了埋伏被炸死。\n再醒来变成农家女，因为二十文钱，差点被打死不说，全家都要被扫地出门。\n她决然断亲，带着瞎眼娘和妹妹出去自立门户。\n还获得了一个灵泉空间，她都这么惨了，空间能升级不过分吧？\n极品敢来闹事，拳打脚踢，一次把他们收拾得服服帖帖。\n神经男：“方若宁，我对你是真心的，等我高中状元，定许你十里红妆，八抬大轿。”\n方若宁：“傻逼吧，别来沾边。”\n上山打猎、挖药，赚钱盖房囤粮。\n方若宁的梦想：一家人，一间屋，养一条狗，30亿存款！\n沈延：“阿宁今天打得没有昨天痛，一定是又爱我了。”\n（注：女强，男主前期弱，心地善良，会被女主带着成长，感情线稍慢，写作不易，打分请手下留情，谢谢。）", "tags": ["种田", "古代言情", "穿越", "空间", "女强", "虐渣"], "crossPeriod": false, "borderColor": "#e91e8c", "backgroundColor": "#e91e8c22", "tension": 0.3, "pointRadius": 5, "borderWidth": 2}]}, "recTracks": [{"cat": "女频衍生", "score": 7, "reasons": ["3日增长+23.4万", "竞争系数低(3.2)", "腰部稳(均腰比1.17)"], "total19": 215.6, "growth": 12.2, "abs_growth": 23.4, "coeff": 3.2, "count10w": 4, "mean": 7.2, "mid19": 6.2, "mm_ratio": 1.17, "ndays": 3}, {"cat": "宫斗宅斗", "score": 7, "reasons": ["3日增长+36.7万", "竞争系数低(4.0)", "腰部稳(均腰比1.31)"], "total19": 737.3, "growth": 5.2, "abs_growth": 36.7, "coeff": 4.0, "count10w": 30, "mean": 24.6, "mid19": 18.8, "mm_ratio": 1.31, "ndays": 3}, {"cat": "现言脑洞", "score": 7, "reasons": ["3日增长+14.4万", "竞争系数低(3.5)", "腰部稳(均腰比1.26)"], "total19": 918.0, "growth": 1.6, "abs_growth": 14.4, "coeff": 3.5, "count10w": 30, "mean": 30.6, "mid19": 24.2, "mm_ratio": 1.26, "ndays": 3}, {"cat": "种田", "score": 7, "reasons": ["3日增长+16.6万", "竞争系数低(3.6)", "腰部稳(均腰比1.19)"], "total19": 677.2, "growth": 2.5, "abs_growth": 16.6, "coeff": 3.6, "count10w": 30, "mean": 22.6, "mid19": 19.0, "mm_ratio": 1.19, "ndays": 3}, {"cat": "豪门总裁", "score": 7, "reasons": ["3日增长+39.9万", "竞争系数低(2.3)", "腰部稳(均腰比1.14)"], "total19": 1141.6, "growth": 3.6, "abs_growth": 39.9, "coeff": 2.3, "count10w": 30, "mean": 38.1, "mid19": 33.3, "mm_ratio": 1.14, "ndays": 3}, {"cat": "古风世情", "score": 6, "reasons": ["3日增长+2.7万", "竞争系数低(3.5)", "腰部稳(均腰比1.3)"], "total19": 346.9, "growth": 0.8, "abs_growth": 2.7, "coeff": 3.5, "count10w": 13, "mean": 11.6, "mid19": 8.9, "mm_ratio": 1.3, "ndays": 3}, {"cat": "年代", "score": 6, "reasons": ["3日增长+5.7万", "竞争系数低(1.9)", "腰部稳(均腰比1.1)"], "total19": 804.4, "growth": 0.7, "abs_growth": 5.7, "coeff": 1.9, "count10w": 30, "mean": 26.8, "mid19": 24.5, "mm_ratio": 1.1, "ndays": 3}, {"cat": "星光璀璨", "score": 6, "reasons": ["3日增长+44.6万", "竞争系数中(9.3)", "腰部稳(均腰比1.64)"], "total19": 468.6, "growth": 10.5, "abs_growth": 44.6, "coeff": 9.3, "count10w": 14, "mean": 15.6, "mid19": 9.5, "mm_ratio": 1.64, "ndays": 3}, {"cat": "职场婚恋", "score": 6, "reasons": ["3日增长+2.4万", "竞争系数低(4.6)", "腰部稳(均腰比1.37)"], "total19": 465.3, "growth": 0.5, "abs_growth": 2.4, "coeff": 4.6, "count10w": 20, "mean": 15.5, "mid19": 11.3, "mm_ratio": 1.37, "ndays": 3}, {"cat": "女频悬疑", "score": 5, "reasons": ["基本稳定(-0.2万)", "竞争系数低(2.8)", "腰部稳(均腰比1.27)"], "total19": 250.7, "growth": -0.1, "abs_growth": -0.2, "coeff": 2.8, "count10w": 7, "mean": 8.4, "mid19": 6.6, "mm_ratio": 1.27, "ndays": 3}, {"cat": "快穿", "score": 5, "reasons": ["基本稳定(-3.3万)", "竞争系数低(2.3)", "腰部稳(均腰比1.12)"], "total19": 507.1, "growth": -0.7, "abs_growth": -3.3, "coeff": 2.3, "count10w": 30, "mean": 16.9, "mid19": 15.0, "mm_ratio": 1.12, "ndays": 3}, {"cat": "科幻末世", "score": 5, "reasons": ["基本稳定(-1.0万)", "竞争系数低(2.6)", "腰部稳(均腰比1.18)"], "total19": 440.3, "growth": -0.2, "abs_growth": -1.0, "coeff": 2.6, "count10w": 21, "mean": 14.7, "mid19": 12.4, "mm_ratio": 1.18, "ndays": 3}, {"cat": "古言脑洞", "score": 4, "reasons": ["竞争系数低(3.5)", "腰部稳(均腰比1.14)"], "total19": 630.5, "growth": -1.0, "abs_growth": -6.4, "coeff": 3.5, "count10w": 30, "mean": 21.0, "mid19": 18.4, "mm_ratio": 1.14, "ndays": 3}, {"cat": "青春甜宠", "score": 4, "reasons": ["竞争系数低(3.4)", "腰部稳(均腰比1.37)"], "total19": 847.2, "growth": -2.1, "abs_growth": -18.6, "coeff": 3.4, "count10w": 30, "mean": 28.2, "mid19": 20.6, "mm_ratio": 1.37, "ndays": 3}, {"cat": "悬疑脑洞", "score": 3, "reasons": ["竞争系数中(5.7)", "腰部稳(均腰比1.36)"], "total19": 423.7, "growth": -2.1, "abs_growth": -9.0, "coeff": 5.7, "count10w": 17, "mean": 14.1, "mid19": 10.4, "mm_ratio": 1.36, "ndays": 3}, {"cat": "玄幻言情", "score": 3, "reasons": ["竞争系数中(5.3)", "腰部稳(均腰比1.48)"], "total19": 890.8, "growth": -24.9, "abs_growth": -295.3, "coeff": 5.3, "count10w": 30, "mean": 29.7, "mid19": 20.0, "mm_ratio": 1.48, "ndays": 3}, {"cat": "民国言情", "score": 2, "reasons": ["基本稳定(-0.1万)", "腰部中(均腰比2.03)"], "total19": 163.8, "growth": -0.1, "abs_growth": -0.1, "coeff": 11.0, "count10w": 4, "mean": 5.5, "mid19": 2.7, "mm_ratio": 2.03, "ndays": 3}, {"cat": "游戏体育", "score": -1, "reasons": ["头部虹吸(均腰比3.57)"], "total19": 456.6, "growth": -6.9, "abs_growth": -33.9, "coeff": 52.2, "count10w": 8, "mean": 15.2, "mid19": 4.3, "mm_ratio": 3.57, "ndays": 3}], "metrics": {"古言脑洞": {"total19": 630.5, "growth": -1.0, "abs_growth": -6.4, "coeff": 3.5, "count10w": 30, "mean": 21.0, "mid19": 18.4, "mm_ratio": 1.14, "ndays": 3}, "古风世情": {"total19": 346.9, "growth": 0.8, "abs_growth": 2.7, "coeff": 3.5, "count10w": 13, "mean": 11.6, "mid19": 8.9, "mm_ratio": 1.3, "ndays": 3}, "女频悬疑": {"total19": 250.7, "growth": -0.1, "abs_growth": -0.2, "coeff": 2.8, "count10w": 7, "mean": 8.4, "mid19": 6.6, "mm_ratio": 1.27, "ndays": 3}, "女频衍生": {"total19": 215.6, "growth": 12.2, "abs_growth": 23.4, "coeff": 3.2, "count10w": 4, "mean": 7.2, "mid19": 6.2, "mm_ratio": 1.17, "ndays": 3}, "宫斗宅斗": {"total19": 737.3, "growth": 5.2, "abs_growth": 36.7, "coeff": 4.0, "count10w": 30, "mean": 24.6, "mid19": 18.8, "mm_ratio": 1.31, "ndays": 3}, "年代": {"total19": 804.4, "growth": 0.7, "abs_growth": 5.7, "coeff": 1.9, "count10w": 30, "mean": 26.8, "mid19": 24.5, "mm_ratio": 1.1, "ndays": 3}, "快穿": {"total19": 507.1, "growth": -0.7, "abs_growth": -3.3, "coeff": 2.3, "count10w": 30, "mean": 16.9, "mid19": 15.0, "mm_ratio": 1.12, "ndays": 3}, "悬疑脑洞": {"total19": 423.7, "growth": -2.1, "abs_growth": -9.0, "coeff": 5.7, "count10w": 17, "mean": 14.1, "mid19": 10.4, "mm_ratio": 1.36, "ndays": 3}, "星光璀璨": {"total19": 468.6, "growth": 10.5, "abs_growth": 44.6, "coeff": 9.3, "count10w": 14, "mean": 15.6, "mid19": 9.5, "mm_ratio": 1.64, "ndays": 3}, "民国言情": {"total19": 163.8, "growth": -0.1, "abs_growth": -0.1, "coeff": 11.0, "count10w": 4, "mean": 5.5, "mid19": 2.7, "mm_ratio": 2.03, "ndays": 3}, "游戏体育": {"total19": 456.6, "growth": -6.9, "abs_growth": -33.9, "coeff": 52.2, "count10w": 8, "mean": 15.2, "mid19": 4.3, "mm_ratio": 3.57, "ndays": 3}, "玄幻言情": {"total19": 890.8, "growth": -24.9, "abs_growth": -295.3, "coeff": 5.3, "count10w": 30, "mean": 29.7, "mid19": 20.0, "mm_ratio": 1.48, "ndays": 3}, "现言脑洞": {"total19": 918.0, "growth": 1.6, "abs_growth": 14.4, "coeff": 3.5, "count10w": 30, "mean": 30.6, "mid19": 24.2, "mm_ratio": 1.26, "ndays": 3}, "种田": {"total19": 677.2, "growth": 2.5, "abs_growth": 16.6, "coeff": 3.6, "count10w": 30, "mean": 22.6, "mid19": 19.0, "mm_ratio": 1.19, "ndays": 3}, "科幻末世": {"total19": 440.3, "growth": -0.2, "abs_growth": -1.0, "coeff": 2.6, "count10w": 21, "mean": 14.7, "mid19": 12.4, "mm_ratio": 1.18, "ndays": 3}, "职场婚恋": {"total19": 465.3, "growth": 0.5, "abs_growth": 2.4, "coeff": 4.6, "count10w": 20, "mean": 15.5, "mid19": 11.3, "mm_ratio": 1.37, "ndays": 3}, "豪门总裁": {"total19": 1141.6, "growth": 3.6, "abs_growth": 39.9, "coeff": 2.3, "count10w": 30, "mean": 38.1, "mid19": 33.3, "mm_ratio": 1.14, "ndays": 3}, "青春甜宠": {"total19": 847.2, "growth": -2.1, "abs_growth": -18.6, "coeff": 3.4, "count10w": 30, "mean": 28.2, "mid19": 20.6, "mm_ratio": 1.37, "ndays": 3}}},
+};
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = '#2a3040';
+Chart.defaults.font.family = "-apple-system,'PingFang SC','Microsoft YaHei',sans-serif";
+const gridColor = 'rgba(42,48,64,0.8)';
+
+const chartRegistry = {};
+
+/* ── Solo-legend helper ── */
+function attachSoloLegend(legEl, chart, datasets) {
+  let soloIdx = -1;
+  const items = [];
+  datasets.forEach((ds, i) => {
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.innerHTML = `<span class="legend-dot" style="background:${ds.borderColor}"></span>${ds.label||ds.fullTitle||''}`;
+    item.addEventListener('click', () => {
+      if (soloIdx === i) {
+        soloIdx = -1;
+        for (let j = 0; j < datasets.length; j++) {
+          chart.getDatasetMeta(j).hidden = false;
+          items[j].classList.remove('solo','dimmed');
+        }
+      } else {
+        soloIdx = i;
+        for (let j = 0; j < datasets.length; j++) {
+          const hidden = j !== i;
+          chart.getDatasetMeta(j).hidden = hidden;
+          items[j].classList.toggle('solo', j === i);
+          items[j].classList.toggle('dimmed', hidden);
+        }
+      }
+      chart.update();
+    });
+    items.push(item);
+    legEl.appendChild(item);
+  });
+  if (datasets.length > 1) {
+    const hint = document.createElement('span');
+    hint.className = 'legend-hint';
+    hint.textContent = '点击只看该曲线';
+    legEl.appendChild(hint);
+  }
+}
+
+/* ── Section IDs for nav ── */
+const SECTION_DEFS = [
+  { key:'rec',      label:'赛道推荐' },
+  { key:'overview', label:'趋势上升赛道' },
+  { key:'compare',  label:'增幅对比' },
+  { key:'table',    label:'全分类汇总' },
+  { key:'books',    label:'推荐书目' },
+];
+
+let activeNavKey = 'rec';
+
+function buildNav(sfx) {
+  const nav = document.getElementById('stickyNav');
+  nav.innerHTML = '';
+  SECTION_DEFS.forEach((s, idx) => {
+    if (idx > 0) {
+      const sep = document.createElement('div');
+      sep.className = 'nav-sep';
+      nav.appendChild(sep);
+    }
+    const a = document.createElement('a');
+    a.className = 'nav-item' + (s.key === activeNavKey ? ' active' : '');
+    a.href = '#sec-' + s.key + '-' + sfx;
+    a.innerHTML = `<span class="nav-num">0${idx+1}</span>${s.label}`;
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      activeNavKey = s.key;
+      document.querySelectorAll('#stickyNav .nav-item').forEach(el => el.classList.remove('active'));
+      a.classList.add('active');
+      const target = document.getElementById('sec-' + s.key + '-' + sfx);
+      if (target) target.scrollIntoView({behavior:'smooth',block:'start'});
+    });
+    nav.appendChild(a);
+  });
+}
+
+/* scrollspy */
+let spyObserver = null;
+function setupScrollSpy(sfx) {
+  if (spyObserver) spyObserver.disconnect();
+  const navH = 48;
+  spyObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const id = entry.target.id;
+      const key = id.replace('sec-','').replace('-'+sfx,'');
+      activeNavKey = key;
+      const a = document.querySelector(`#stickyNav a[href="#${id}"]`);
+      if (!a) return;
+      document.querySelectorAll('#stickyNav .nav-item').forEach(el=>el.classList.remove('active'));
+      a.classList.add('active');
+    });
+  }, { rootMargin: `-${navH}px 0px -60% 0px`, threshold: 0 });
+  SECTION_DEFS.forEach(s => {
+    const el = document.getElementById('sec-' + s.key + '-' + sfx);
+    if (el) spyObserver.observe(el);
+  });
+}
+
+function renderReport(D, sfx) {
+  const panel = document.getElementById('panel' + sfx);
+  const n = D.n;
+
+  panel.innerHTML = `
+  <div class="container">
+    <div class="section" id="sec-rec-${sfx}">
+      <div class="section-header">
+        <span class="section-num">01</span>
+        <span class="badge">推荐</span>
+        <span class="section-title">赛道综合评分</span>
+      </div>
+      <div class="note">
+        <strong>评分维度：</strong><br>
+        ${n}日在读增幅：增长 &gt; 10万 → +3分，0~10万 → +2分，-5万~0（稳定）→ +1分<br>
+        竞争系数（第1名 ÷ 中位数，越低越好）：&lt;5 → +2分，5~10 → +1分，&gt;10 → +0分<br>
+        均腰稳定度（在读均值 ÷ 中位数，反映腰部生存空间）：&lt;1.8（分布均匀）→ +2分，1.8~3.0（中度分化）→ +1分，&gt;3.0（头部虹吸）→ -1分<br>
+        体量：总在读 &lt; 100万 → -2分
+      </div>
+      <div id="rec-container-${sfx}"></div>
+    </div>
+    <div class="section" id="sec-overview-${sfx}">
+      <div class="section-header">
+        <span class="section-num">02</span>
+        <span class="badge">总览</span>
+        <span class="section-title">在读人数呈趋势上升的赛道</span>
+      </div>
+      <div class="note">从全部 18 个分类中筛选出 ${n} 日内在读人数持续上升的题材，共 ${D.nRising} 个。点击图例可单独查看某个分类的曲线。</div>
+      <div class="card">
+        <div id="overview-legend-${sfx}" class="legend-row"></div>
+        <div class="chart-wrap" style="height:320px"><canvas id="overviewChart-${sfx}"></canvas></div>
+      </div>
+    </div>
+    <div class="section" id="sec-compare-${sfx}">
+      <div class="section-header">
+        <span class="section-num">03</span>
+        <span class="badge">对比</span>
+        <span class="section-title">${n}日增幅 &amp; 竞争系数分析</span>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div style="font-size:13px;color:var(--text2);margin-bottom:12px">${n}日总在读增幅（${D.startLabel}→${D.endLabel}）</div>
+          <div class="chart-wrap" style="height:520px"><canvas id="growthChart-${sfx}"></canvas></div>
+        </div>
+        <div class="card">
+          <div style="font-size:13px;color:var(--text2);margin-bottom:12px">赛道定位图：总在读 vs 竞争系数（气泡大小 = 10万+书目数）</div>
+          <div class="chart-wrap" style="height:320px"><canvas id="bubbleChart-${sfx}"></canvas></div>
+        </div>
+      </div>
+    </div>
+    <div class="section" id="sec-table-${sfx}">
+      <div class="section-header">
+        <span class="section-num">04</span>
+        <span class="badge">数据</span>
+        <span class="section-title">全分类汇总表（${D.endLabel}快照）</span>
+      </div>
+      <div class="card" style="overflow-x:auto">
+        <table class="overview-table" id="overviewTable-${sfx}"></table>
+      </div>
+    </div>
+    <div class="section" id="sec-books-${sfx}">
+      <div class="section-header">
+        <span class="section-num">05</span>
+        <span class="badge">书目</span>
+        <span class="section-title">推荐赛道 &amp; 对标书目</span>
+      </div>
+      <div class="note">仅展示连续 ${n} 天上榜且净增 &gt; 0 的书目，按净增降序排列。</div>
+      <div class="tabs" id="bookTabs-${sfx}"></div>
+      <div id="bookTabContents-${sfx}"></div>
+    </div>
+  </div>`;
+
+  buildNav(sfx);
+  setTimeout(() => setupScrollSpy(sfx), 200);
+
+  // ① 推荐卡片
+  (function() {
+    const container = document.getElementById('rec-container-' + sfx);
+    const groups = {};
+    D.recTracks.forEach(t => { if (!groups[t.score]) groups[t.score] = []; groups[t.score].push(t); });
+    Object.keys(groups).sort((a,b)=>b-a).forEach(score => {
+      const s = parseInt(score);
+      const groupEl = document.createElement('div');
+      groupEl.className = 'score-group';
+      const labelEl = document.createElement('div');
+      labelEl.className = 'score-group-label';
+      const scoreLabel =
+        s>=7 ? '★★★ 强烈推荐' :
+        s>=6 ? '★★★ 强推' :
+        s>=5 ? '★★☆ 推荐' :
+        s>=4 ? '★★☆ 建议关注' :
+        s>=3 ? '★☆☆ 可参考' :
+        s>=1 ? '☆☆☆ 谨慎' :
+        '✕ 不建议';
+      labelEl.textContent = `${scoreLabel} — ${s}分`;
+      groupEl.appendChild(labelEl);
+      const grid = document.createElement('div');
+      grid.className = 'rec-grid';
+      groups[score].forEach(t => {
+        const tierClass =
+          s>=7 ? 's8' :
+          s>=5 ? 's7' :
+          s>=3 ? 's6' :
+          s>=1 ? 's5' :
+          'slo';
+        const scoreClass = s>=6?'high':s>=3?'med':'low';
+        const agRaw = t.abs_growth != null ? t.abs_growth : 0;
+        const gPct = t.growth != null ? t.growth : 0;
+        const agHtml = agRaw>=0?`<span class="pill pill-up">+${agRaw}万</span>`:`<span class="pill pill-dn">${agRaw}万</span>`;
+        const pctHtml = `<span style="font-size:11px;color:var(--text3);margin-left:4px">${gPct>=0?'+':''}${gPct}%</span>`;
+        const gHtml = agHtml + pctHtml;
+        const reasonsHtml = t.reasons.map(r=>{
+          let cls='tag-blue';
+          if(r.includes('增长'))cls='tag-green';
+          else if(r.includes('稳定'))cls='tag-yellow';
+          else if(r.includes('系数低'))cls='tag-green';
+          else if(r.includes('系数中'))cls='tag-yellow';
+          else if(r.includes('腰部稳'))cls='tag-green';
+          else if(r.includes('腰部中'))cls='tag-yellow';
+          else if(r.includes('头部虹吸'))cls='tag-red';
+          else if(r.includes('体量偏小'))cls='tag-red';
+          return `<span class="${cls}">${r}</span>`;
+        }).join('');
+        grid.innerHTML += `<div class="rec-card ${tierClass}">
+          <div class="rec-cat">${t.cat}</div>
+          <div class="rec-score-badge ${scoreClass}">综合评分 ${s}分</div>
+          <div class="rec-stats">
+            <div class="rec-stat"><div class="val">${t.total19}万</div><div class="lbl">总在读</div></div>
+            <div class="rec-stat"><div class="val">${gHtml}</div><div class="lbl">${n}日在读增幅</div></div>
+            <div class="rec-stat"><div class="val" style="color:${t.coeff<5?'#22c55e':t.coeff<7?'#3b82f6':t.coeff<10?'#f59e0b':'#ef4444'}">${t.coeff}</div><div class="lbl">竞争系数</div></div>
+            <div class="rec-stat"><div class="val" style="color:${t.mm_ratio<1.8?'#22c55e':t.mm_ratio<=3.0?'#f59e0b':'#ef4444'}">${t.mm_ratio}</div><div class="lbl">均腰比</div></div>
+          </div>
+          <div class="rec-reasons">${reasonsHtml}</div>
+        </div>`;
+      });
+      groupEl.appendChild(grid);
+      container.appendChild(groupEl);
+    });
+  })();
+
+  // ② 上升题材折线图（solo legend）
+  (function() {
+    const ctx = document.getElementById('overviewChart-' + sfx).getContext('2d');
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: { labels: D.days, datasets: D.overviewDatasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: { backgroundColor: '#1e2433', borderColor: '#2a3040', borderWidth: 1,
+            callbacks: { label: c => ` ${c.dataset.label}: ${c.parsed.y}万` } }
+        },
+        scales: {
+          x: { grid: { color: gridColor }, ticks: { color: '#64748b' } },
+          y: { grid: { color: gridColor }, ticks: { color: '#64748b', callback: v => v+'万' } }
+        }
+      }
+    });
+    const legEl = document.getElementById('overview-legend-' + sfx);
+    attachSoloLegend(legEl, chart, D.overviewDatasets);
+    if (!chartRegistry[sfx]) chartRegistry[sfx] = [];
+    chartRegistry[sfx].push(chart);
+  })();
+
+  // ③ 增幅柱状图
+  (function() {
+    const chart = new Chart(document.getElementById('growthChart-' + sfx).getContext('2d'), {
+      type: 'bar',
+      data: { labels: D.growthCats, datasets: [{ data: D.growthValues,
+        backgroundColor: D.growthColors.map(c=>c+'cc'), borderColor: D.growthColors,
+        borderWidth: 1, borderRadius: 3 }] },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false },
+          tooltip: { backgroundColor: '#1e2433', borderColor: '#2a3040', borderWidth: 1,
+            callbacks: { label: c => ` ${c.parsed.x>0?'+':''}${c.parsed.x}%` } } },
+        scales: {
+          x: { grid: { color: gridColor }, ticks: { color: '#64748b', callback: v => v+'%' } },
+          y: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 12 } } }
+        }
+      }
+    });
+    if (!chartRegistry[sfx]) chartRegistry[sfx] = [];
+    chartRegistry[sfx].push(chart);
+  })();
+
+  // ③ 气泡图
+  (function() {
+    const colors = ['#f39c12','#c0392b','#95a5a6','#d35400','#e67e22','#27ae60','#3498db',
+      '#1abc9c','#f1c40f','#7f8c8d','#1e8449','#8e44ad','#9b59b6','#2ecc71',
+      '#16a085','#2980b9','#e74c3c','#e91e8c'];
+    const chart = new Chart(document.getElementById('bubbleChart-' + sfx).getContext('2d'), {
+      type: 'bubble',
+      data: { datasets: D.bubbleData.map((b,i) => ({
+        label: b.label, data: [{x:b.x,y:b.y,r:b.r}],
+        backgroundColor: colors[i%colors.length]+'88', borderColor: colors[i%colors.length], borderWidth: 1.5
+      })) },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false },
+          tooltip: { backgroundColor: '#1e2433', borderColor: '#2a3040', borderWidth: 1,
+            callbacks: { title: c => c[0].dataset.label,
+              label: c => { const b=D.bubbleData.find(b=>b.label===c.dataset.label);
+                return [` 总在读：${c.parsed.x}万`,` 竞争系数：${c.parsed.y}`,` 10万+：${b?b.count10w:'-'}本`]; } } } },
+        scales: {
+          x: { grid:{color:gridColor}, ticks:{color:'#64748b',callback:v=>v+'万'}, title:{display:true,text:'总在读（万）',color:'#64748b'} },
+          y: { grid:{color:gridColor}, ticks:{color:'#64748b'}, title:{display:true,text:'竞争系数（越低越好）',color:'#64748b'} }
+        }
+      },
+      plugins: [{ id:'bubbleLabels', afterDatasetsDraw(chart2) {
+        const ctx2=chart2.ctx;
+        chart2.data.datasets.forEach((ds,i)=>{ chart2.getDatasetMeta(i).data.forEach(el=>{
+          const {x,y}=el.getProps(['x','y']);
+          ctx2.save(); ctx2.fillStyle='#e2e8f0'; ctx2.font='10px PingFang SC,sans-serif';
+          ctx2.textAlign='center'; ctx2.fillText(ds.label,x,y+3); ctx2.restore();
+        }); });
+      } }]
+    });
+    if (!chartRegistry[sfx]) chartRegistry[sfx] = [];
+    chartRegistry[sfx].push(chart);
+  })();
+
+  // ④ 汇总表
+  (function() {
+    const sorted = Object.keys(D.metrics).sort((a,b)=>(D.metrics[b].abs_growth||0)-(D.metrics[a].abs_growth||0));
+    const table = document.getElementById('overviewTable-' + sfx);
+    table.innerHTML = `<thead><tr><th>分类</th><th>总在读（万）</th><th>${n}日增幅</th><th>${n}日增长在读（万）</th><th>在读均值（万）</th><th>在读中位数（万）</th><th>均腰比</th><th>竞争系数</th><th>10万+书</th></tr></thead>
+    <tbody>${sorted.map((cat,i)=>{
+      const m=D.metrics[cat];
+      const gClass=m.growth>=0?'pill-up':'pill-dn';
+      const gStr=(m.growth>=0?'+':'')+m.growth+'%';
+      const agRaw=m.abs_growth!=null?m.abs_growth:0;
+      const agClass=agRaw>=0?'pill-up':'pill-dn';
+      const agStr=(agRaw>=0?'+':'')+agRaw+'万';
+      const cc=m.coeff<=5?'#22c55e':m.coeff<=10?'#f59e0b':'#ef4444';
+      const mmr=m.mm_ratio!=null?m.mm_ratio:0;
+      const mmc=mmr<1.8?'#22c55e':mmr<=3.0?'#f59e0b':'#ef4444';
+      return `<tr><td class="cat-name">${i+1}. ${cat}</td><td>${m.total19}</td>
+        <td><span class="pill ${gClass}">${gStr}</span></td>
+        <td><span class="pill ${agClass}">${agStr}</span></td>
+        <td>${m.mean}</td><td>${m.mid19!=null?m.mid19:'—'}</td>
+        <td style="color:${mmc};font-weight:600">${mmr}</td>
+        <td style="color:${cc};font-weight:600">${m.coeff}</td>
+        <td>${m.count10w>0?m.count10w+'本':'<span style=\"color:var(--text3)\">—</span>'}</td></tr>`;
+    }).join('')}</tbody>`;
+  })();
+
+  // ⑤ 书目折线图 + 趋势表 + 热门标签
+  (function() {
+    const cats = Object.keys(D.bookChartData);
+    const tabsEl = document.getElementById('bookTabs-' + sfx);
+    const contsEl = document.getElementById('bookTabContents-' + sfx);
+    cats.forEach((cat, ci) => {
+      const tab = document.createElement('div');
+      tab.className = 'tab'+(ci===0?' active':'');
+      tab.textContent = cat; tab.dataset.cat = cat + '-' + sfx;
+      tabsEl.appendChild(tab);
+      const rawBooks = D.bookChartData[cat];
+      const isRead = sfx.startsWith('Read');
+      // 阅读榜只展示连载中的书；图表、表格、热门标签、累计净增全部同源
+      const displayBooks = isRead
+        ? rawBooks.filter(b => b.creationStatus === 1)
+        : rawBooks;
+      const content = document.createElement('div');
+      content.className = 'tab-content'+(ci===0?' active':'');
+      content.id = 'tab-' + cat + '-' + sfx;
+      const dayCols = displayBooks.length > 0
+        ? displayBooks[0].data.map((_,di) => `<th style="width:52px">${D.days[di] || ''}</th>`).join('')
+        : D.days.map(d => `<th style="width:52px">${d}</th>`).join('');
+      content.innerHTML = `
+        <div class="book-layout">
+          <div class="card">
+            <div style="font-size:13px;color:var(--text2);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+              <span>${cat} · 在读人数折线图（万人）${isRead ? '<span style="font-size:11px;color:var(--green);margin-left:6px">仅连载中</span>' : ''}</span>
+            </div>
+            <div id="bookLegend-${sfx}-${ci}" class="legend-row" style="margin-bottom:10px"></div>
+            <div class="chart-wrap" style="height:480px"><canvas id="bookChart-${sfx}-${ci}"></canvas></div>
+          </div>
+          <div class="card" style="overflow-x:auto">
+            <div style="font-size:13px;color:var(--text2);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+              <span>全部书目趋势（${D.days[0]}→${D.days[D.days.length-1]}，按净增排序）${isRead ? '<span style="font-size:11px;color:var(--green);margin-left:6px">仅连载中</span>' : ''}</span>
+              <span style="font-size:12px;color:#ef4444;font-weight:600">累计净增 +${displayBooks.reduce((s,b)=>+(s+b.trend).toFixed(2),0)}万</span>
+            </div>
+            <table class="book-table" id="bookTable-${sfx}-${ci}">
+              <thead><tr><th style="width:32px"></th><th style="width:28px">#</th><th>书名</th>${dayCols}<th style="width:52px">字数</th><th style="width:52px">净增</th></tr></thead>
+              <tbody id="bookTbody-${sfx}-${ci}"></tbody>
+            </table>
+          </div>
+        </div>`;
+      contsEl.appendChild(content);
+
+      const tags = (D.catTags||{})[cat]||[];
+      if (tags.length) {
+        const maxCount = tags[0].count;
+        const barColors = {'豪门总裁':'#e74c3c','青春甜宠':'#e91e8c','古言脑洞':'#f39c12','悬疑脑洞':'#1abc9c','现言脑洞':'#9b59b6'};
+        const barColor = barColors[cat]||'#3498db';
+        const totalBooks = displayBooks.length;
+        const tagSec = document.createElement('div');
+        tagSec.className = 'tag-section card';
+        tagSec.style.marginTop = '16px';
+        tagSec.innerHTML = `
+          <div class="tag-section-title">📌 热门标签（基于 ${totalBooks} 本上榜书${isRead ? '，仅连载中' : ''}，可作为开书参考）</div>
+          <div class="tag-bar-list">
+            ${tags.slice(0,10).map(t=>`
+              <div class="tag-bar-row">
+                <div class="tag-bar-name">${t.tag}</div>
+                <div class="tag-bar-track"><div class="tag-bar-fill" style="width:${Math.round(t.count/maxCount*100)}%;background:${barColor}99"></div></div>
+                <div class="tag-bar-count">${t.count}本</div>
+              </div>`).join('')}
+          </div>`;
+        content.appendChild(tagSec);
+      }
+
+      (function() {
+        const tbody = document.getElementById('bookTbody-' + sfx + '-' + ci);
+        if (!tbody) return;
+        const sorted = [...displayBooks].sort((a,b)=>b.trend-a.trend);
+        if (isRead && sorted.length === 0) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td colspan="100" style="color:var(--text3);padding:20px;text-align:center">暂无连载中书目</td>`;
+          tbody.appendChild(tr);
+          return;
+        }
+        sorted.forEach((b, i) => {
+          const tStr = b.trend>0?`+${b.trend}`:`${b.trend}`;
+          const tCls = b.trend>=1?'trend-up':b.trend>0?'trend-mid':b.trend<0?'trend-dn':'';
+          const wn = b.wordNumber||0;
+          const wStr = wn>0?(Math.round(wn/1000)/10).toFixed(1)+'万':'—';
+          const rid = `dr-${sfx}-${ci}-${i}`;
+          const btnId = `btn-${sfx}-${ci}-${i}`;
+          const cols = b.data.map(v=>`<td>${v}万</td>`).join('');
+          // 双榜徽章：书目同时在 3 日 & 7 日窗口出现（同榜单类型内跨窗口交集）
+          const otherPeriod = sfx.endsWith('7') ? '3日' : '7日';
+          const dualBadge = b.crossPeriod
+            ? `<span class="dual-badge" title="同时上榜 3日 & 7日 ${sfx.startsWith('Read')?'阅读榜':'新书榜'}">双榜</span>`
+            : '';
+          const tr = document.createElement('tr');
+          tr.style.cursor = 'pointer';
+          if (b.crossPeriod) tr.classList.add('row-dual');
+          tr.innerHTML = `
+            <td><button class="expand-btn" id="${btnId}">+</button></td>
+            <td style="color:var(--text3)">${i+1}</td>
+            <td class="book-name-cell"><a href="${b.link}" target="_blank" onclick="event.stopPropagation()" title="${b.fullTitle}">${b.fullTitle}</a>${dualBadge}</td>
+            ${cols}
+            <td style="color:var(--text2)">${wStr}</td>
+            <td class="${tCls}">${tStr}万</td>`;
+          tbody.appendChild(tr);
+          const dr = document.createElement('tr');
+          dr.className = 'book-detail-row';
+          dr.id = rid;
+          const colspan = 5 + b.data.length;
+          const tagsHtml = (b.tags||[]).map(t=>`<span class="book-detail-tag">${t}</span>`).join('');
+          dr.innerHTML = `<td colspan="${colspan}">
+            <div class="book-detail-inner">
+              <div><span style="color:var(--text3)">书名：</span><span style="color:var(--text);font-weight:600">${b.fullTitle}</span></div>
+              <div style="margin-top:4px"><span style="color:var(--text3)">作品简介：</span>${b.desc||'暂无简介'}</div>
+              ${tagsHtml?`<div class="book-detail-tags">${tagsHtml}</div>`:''}
+            </div></td>`;
+          tbody.appendChild(dr);
+          const toggle = () => {
+            const row = document.getElementById(rid);
+            const open = row.classList.toggle('open');
+            const btn = document.getElementById(btnId);
+            if (btn) btn.textContent = open ? '−' : '+';
+          };
+          tr.addEventListener('click', toggle);
+        });
+      })();
+
+      // 书目折线图（带 solo legend），延迟渲染
+      setTimeout(() => {
+        const cvs = document.getElementById('bookChart-' + sfx + '-' + ci);
+        if (!cvs) return;
+        if (displayBooks.length === 0) return;
+        const chart = new Chart(cvs.getContext('2d'), {
+          type: 'line',
+          data: { labels: D.days, datasets: displayBooks },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: { legend: { display: false },
+              tooltip: { backgroundColor: '#1e2433', borderColor: '#2a3040', borderWidth: 1,
+                callbacks: { label: c => ` ${c.dataset.fullTitle||c.dataset.label}: ${c.parsed.y}万` } } },
+            scales: {
+              x: { grid:{color:gridColor}, ticks:{color:'#64748b'} },
+              y: { grid:{color:gridColor}, ticks:{color:'#64748b',callback:v=>parseFloat(v.toFixed(1))+'万'} }
+            }
+          }
+        });
+        const legEl = document.getElementById('bookLegend-' + sfx + '-' + ci);
+        if (legEl) attachSoloLegend(legEl, chart, displayBooks);
+        if (!chartRegistry[sfx]) chartRegistry[sfx] = [];
+        chartRegistry[sfx].push(chart);
+      }, 60*(ci+1));
+    });
+
+    tabsEl.addEventListener('click', e => {
+      const tab = e.target.closest('.tab');
+      if (!tab) return;
+      tabsEl.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      contsEl.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+      tab.classList.add('active');
+      const el = document.getElementById('tab-' + tab.dataset.cat);
+      if (el) el.classList.add('active');
+    });
+  })();
+}
+
+// Period switcher
+const PANEL_IDS = ['New7','New3','Read7','Read3'];
+let renderedPanels = {};
+function switchPeriod(p) {
+  PANEL_IDS.forEach(id => {
+    document.getElementById('btn' + id).classList.toggle('active', id === p);
+    document.getElementById('panel' + id).classList.toggle('active', id === p);
+  });
+  if (!renderedPanels[p]) {
+    renderedPanels[p] = true;
+    renderReport(DATA[p], p);
+  } else {
+    buildNav(p);
+    setTimeout(() => setupScrollSpy(p), 200);
+  }
+}
+
+// Default: 7日新书榜
+switchPeriod('New7');
+PANEL_IDS.forEach(id => {
+  document.getElementById('btn' + id).addEventListener('click', () => switchPeriod(id));
+});
+</script>
+</body>
+</html>
